@@ -1,4 +1,29 @@
-GET / HTTP/2
+// neuen User anlegen - create
+POST /user HTTP/2
+Host: localhost:8080
+Content-Type: application/json
+
+{"username":"Testusername","vorname":"Testvorname","nachname":"Testnachname","passwort":"Testpasswort"}
+
+###
+// Daten von Testuser zurückgeben - read
+GET /user/Testusername HTTP/1.1
 Host: localhost:8080
 
 ###
+// Daten von Testuser zurückgeben - update
+PUT /user/Testusername HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"username":"Testusername","vorname":"Testvorname","nachname":"Testnachname","passwort":"Testpasswort"}
+
+###
+// Testuser löschen - delete
+DELETE /user/Testusername HTTP/2
+Host: localhost:8080
+
+###
+GET / HTTP/2
+Host: localhost:8080
+
