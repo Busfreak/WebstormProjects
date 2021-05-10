@@ -15,7 +15,17 @@ class User {
         this.passwort = passwort;
     }
 }
+class Pet {
+    public readonly tiername: string;
+    public tierart: string;
+
+    constructor(tiername: string, tierart: string) {
+        this.tiername = tiername;
+        this.tierart = tierart;
+    }
+}
 const users: Map<string, User> = new Map<string, User>();
+const pets: Map<string, Pet> = new Map<string, Pet>();
 
 router.listen (PORT, () => {
     console.log("Server ist gestartet unter http://localhost:" + PORT + "/");
@@ -38,7 +48,11 @@ router.use("/lib", express.static(__dirname + "/node_modules"));
 router.post("/user", postUser);
 router.get("/user/:username", getUser);
 router.delete("/user/:username", deleteUser)
-router.put("/user/:username", updateUser)
+router.put("/pet/:tiername", updatePet)
+router.post("/pet", postPet);
+router.get("/pet/:tiername", getPet);
+router.delete("/pet/:tiername", deletePet)
+router.put("/pet/:tiername", updatePet)
 
 
 // Funktionen für REST
@@ -96,6 +110,53 @@ function updateUser(req: express.Request, res: express.Response): void {
     } else {
         res.sendStatus(404);
     }
+}
 
+// neues Tier anlegen
+function postPet(req: express.Request, res: express.Response): void {
+    const tiername: string = req.body.tiername;
+    const tierart: string = req.body.tierart;
+    if (!pets.has(tiername)) {
+        pets.set(tiername, new Pet(tiername, tierart));
+        res.sendStatus(201);
+    } else {
+        res.sendStatus(403);
+    }
+}
+
+// Tier auslesen und zurück senden
+function getPet(req: express.Request, res: express.Response): void {
+    const tiername: string = req.params.tiername;
+    if (pets.has(tiername)) {
+        const p: Pet = pets.get(tiername);
+        res.status(200);
+        res.json({"tiername":p.tiername,"tierart":p.tierart});
+    } else {
+        res.sendStatus(404);
+    }
+}
+
+// Tier löschen
+function deletePet(req: express.Request, res: express.Response): void {
+    const tiername: string = req.params.tiername;
+    if (pets.has(tiername)) {
+        pets.delete(tiername);
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(404);
+    }
+}
+
+// Tier aktualisieren
+function updatePet(req: express.Request, res: express.Response): void {
+    const tiername: string = req.body.tiername;
+    const tierart: string = req.body.tiertart;
+    if (pets.has(tiername)) {
+        const p: Pet = pets.get(tiername);
+        p.tierart = tierart;
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(404);
+    }
 }
 

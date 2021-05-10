@@ -27,3 +27,28 @@ Host: localhost:8080
 GET / HTTP/2
 Host: localhost:8080
 
+###
+// neues Tier anlegen - create
+POST /pet HTTP/2
+Host: localhost:8080
+Content-Type: application/json
+
+{"tiername":"Testtiername","tierart":"Testtierart"}
+
+###
+// Daten von Testtier zurückgeben - read
+GET /pet/Testtiername HTTP/1.1
+Host: localhost:8080
+
+###
+// Daten von Testtier aktualisieren - update
+PUT /pet/Testtiername HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"tiername":"Testtiername","tiertart":"Testtierart"}
+
+###
+// Testtier löschen - delete
+DELETE /pet/Testtiername HTTP/2
+Host: localhost:8080
