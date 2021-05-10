@@ -87,7 +87,6 @@ function updateUser(req: express.Request, res: express.Response): void {
     const username: string = req.body.username;
     const vorname: string = req.body.vorname;
     const nachname: string = req.body.nachname;
-    const passwort: string = req.body.passwort;
 //    res.send("Der User mit dem Usernamen " + username + " wurde aktualisiert :)");
     if (users.has(username)) {
         const u: User = users.get(username);
