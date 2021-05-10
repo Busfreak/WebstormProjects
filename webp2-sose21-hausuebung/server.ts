@@ -42,6 +42,7 @@ router.put("/user/:username", updateUser)
 
 
 // Funktionen für REST
+// neuen User anlegen, wenn er noch nicht existiert
 function postUser(req: express.Request, res: express.Response): void {
     const username: string = req.body.username;
     const vorname: string = req.body.vorname;
@@ -56,18 +57,46 @@ function postUser(req: express.Request, res: express.Response): void {
     }
 }
 
+// User auslesen und zurück senden
 function getUser(req: express.Request, res: express.Response): void {
     const username: string = req.params.username;
-    res.send("Der User mit dem Usernamen " + username + " existiert :)");
+//    res.send("Der User mit dem Usernamen " + username + " existiert :)");
+    if (users.has(username)) {
+        const u: User = users.get(username);
+        res.status(200);
+        res.json({"vorname":u.vorname,"nachname":u.nachname});
+    } else {
+        res.sendStatus(404);
+    }
 }
 
+// User löschen
 function deleteUser(req: express.Request, res: express.Response): void {
     const username: string = req.params.username;
-    res.send("Der User mit dem Usernamen " + username + " wurde gelöscht :)");
+//    res.send("Der User mit dem Usernamen " + username + " wurde gelöscht :)");
+    if (users.has(username)) {
+        users.delete(username);
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(404);
+    }
 }
 
+// User aktualisieren
 function updateUser(req: express.Request, res: express.Response): void {
-    const username: string = req.params.username;
-    res.send("Der User mit dem Usernamen " + username + " wurde aktualisiert :)");
+    const username: string = req.body.username;
+    const vorname: string = req.body.vorname;
+    const nachname: string = req.body.nachname;
+    const passwort: string = req.body.passwort;
+//    res.send("Der User mit dem Usernamen " + username + " wurde aktualisiert :)");
+    if (users.has(username)) {
+        const u: User = users.get(username);
+        u.vorname = vorname;
+        u.nachname = nachname;
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(404);
+    }
+
 }
 

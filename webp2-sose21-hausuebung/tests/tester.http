@@ -11,12 +11,12 @@ GET /user/Testusername HTTP/1.1
 Host: localhost:8080
 
 ###
-// Daten von Testuser zurückgeben - update
+// Daten von Testuser aktualisieren - update
 PUT /user/Testusername HTTP/1.1
 Host: localhost:8080
 Content-Type: application/json
 
-{"username":"Testusername","vorname":"Testvorname","nachname":"Testnachname","passwort":"Testpasswort"}
+{"username":"Testusername","vorname":"Testvorname1","nachname":"Testnachname1"}
 
 ###
 // Testuser löschen - delete
