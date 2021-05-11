@@ -48,7 +48,9 @@ router.use("/lib", express.static(__dirname + "/node_modules"));
 router.post("/user", postUser);
 router.get("/user/:username", getUser);
 router.delete("/user/:username", deleteUser)
-router.put("/pet/:tiername", updatePet)
+router.put("/user/:username", updateUser)
+router.get("/users", getUsers);
+
 router.post("/pet", postPet);
 router.get("/pet/:tiername", getPet);
 router.delete("/pet/:tiername", deletePet)
@@ -107,6 +109,22 @@ function updateUser(req: express.Request, res: express.Response): void {
         u.vorname = vorname;
         u.nachname = nachname;
         res.sendStatus(200);
+    } else {
+        res.sendStatus(404);
+    }
+}
+
+// alle User auslesen und zurück senden
+function getUsers(req: express.Request, res: express.Response): void {
+// https://www.cloudhadoop.com/2018/09/typescript-how-to-convert-map-tofrom.html
+    if (users.size > 0) {
+        let jsonObject = {};
+        users.forEach((value, key) => {
+            delete value["passwort"];
+            jsonObject[key] = value
+        });
+        res.status(200);
+        res.json(jsonObject);
     } else {
         res.sendStatus(404);
     }

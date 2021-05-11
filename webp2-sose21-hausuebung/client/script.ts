@@ -1,3 +1,4 @@
+//import axios, {AxiosError, AxiosResponse} from "axios";
 class User{
     vorname: string;
     nachname: string;
@@ -110,7 +111,26 @@ function saveRegistration():void {
     const val: boolean = form.reportValidity();
     if (val) {
         userlist.push(user);
-        form.reset();
+// AJAX Request
+        axios.post("/user", {
+            username: username,
+            vorname: vorname,
+            nachname: nachname,
+            passwort: passwort
+        })
+            .then(()=>{
+                console.log("Speichern erfolgreich!");
+            })
+            .catch((err : AxiosError) => {
+                if(err.response.status == 403) {
+                    console.log("Benutzername ist breits vergeben");
+                } else {
+                    console.log("Fehler in der Anmeldung");
+                }
+            });
+
+
+form.reset();
         renderUserlist();
     }
     renderLoginForm();
@@ -258,14 +278,21 @@ function renderUserlist(): void {
     let table: HTMLElement = document.getElementById("user-table");
     table.innerHTML = "";
 
-    for (let i: number = 0; i < userlist.length; i++) {
-        const user: User = userlist[i];
-        const row: HTMLElement = document.createElement("tr");
-        row.setAttribute("id", "row" + i);
-        row.innerHTML = `
-            <td class="col-3">${user.username}</td>
-            <td class="col-3">${user.vorname}</td>
-            <td class="col-3">${user.nachname}</td>
+    // AJAX Request
+    axios.get("/users").then((res: AxiosResponse) => {
+
+        for (var value in res.data) {
+            console.log(res.data[value]["vorname"]);
+
+
+//            for (let i: number = 0; i < userlist.length; i++) {
+//                const user: User = userlist[i];
+                const row: HTMLElement = document.createElement("tr");
+//                row.setAttribute("id", "row" + i);
+                row.innerHTML = `
+            <td class="col-3">${res.data[value]["username"]}</td>
+            <td class="col-3">${res.data[value]["vorname"]}</td>
+            <td class="col-3">${res.data[value]["nachname"]}</td>
             <td class="col-3" id="buttonliste">
                <button type="submit" class="edit-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
@@ -284,8 +311,27 @@ function renderUserlist(): void {
                 Passwort ändern</button>
             </td>`;
 
-        table.appendChild(row);
-    }
+                table.appendChild(row);
+//            }
+
+
+
+
+
+        }
+
+
+
+    }).catch((err: AxiosError) => {
+        if(err.response.status == 401) {
+            console.log("Das geht nur angemeldet!");
+        } else {
+            console.log("Anfrage Fehlgeschlagen")
+        }
+    });
+
+
+
 }
 
 function editUser(index): void {
