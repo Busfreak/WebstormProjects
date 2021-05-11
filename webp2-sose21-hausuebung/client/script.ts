@@ -42,13 +42,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const ziel: HTMLElement = event.target as HTMLElement;
         const index: number = Number(ziel.dataset.index);
         if (ziel.matches(".edit-button")) {
-            editUser(index);
+            let Zeile: HTMLElement = document.getElementById("row" + index);
+            let username = Zeile.getElementsByTagName("td").item(0).innerText;
+            let vorname = Zeile.getElementsByTagName("td").item(1).innerText;
+            let nachname = Zeile.getElementsByTagName("td").item(2).innerText;
+            editUser(Zeile, index, username, vorname, nachname);
         }
         if (ziel.matches(".delete-button")) {
-            deleteUser(index);
+            let Zeile: HTMLElement = document.getElementById("row" + index);
+            let username = Zeile.getElementsByTagName("td").item(0).innerText;
+            deleteUser(username);
         }
         if (ziel.matches(".save-button")) {
-            saveUser(index);
+            const username = (document.getElementById("edit-uname") as HTMLInputElement).value;
+            const vorname = (document.getElementById("edit-fname") as HTMLInputElement).value;
+            const nachname = (document.getElementById("edit-lname") as HTMLInputElement).value;
+            saveUser(username, vorname, nachname);
         }
         if (ziel.matches(".cancel-button")) {
             renderUserlist();
@@ -80,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 })
 
+// tbd: Eingaben prüfen, Formular erst usblenden, wenn alles korrekt und abgespeichert ist
 function saveRegistration():void {
     const form: HTMLFormElement = document.getElementById("form") as HTMLFormElement;
     //Eingaben auslesen
@@ -95,12 +105,19 @@ function saveRegistration():void {
     user.username = username.trim();
     user.passwort = passwort.trim();
 
-    //Werte wieder ins FOrmular schreiben
+    //Werte wieder ins Formular schreiben
     (document.getElementById("vorname") as HTMLInputElement).value = user.vorname;
     (document.getElementById("nachname") as HTMLInputElement).value = user.nachname;
     (document.getElementById("username") as HTMLInputElement).value = user.username;
     (document.getElementById("passwort") as HTMLInputElement).value = user.passwort;
 
+    // prüfen, ob der Username Leerzeichen enthält
+    const test = user.username.split(" ");
+    if (test.length > 1) {
+        alert("Der Username darf keine Leerzeichen enthalten!");
+        user.username = "";
+        (document.getElementById("username") as HTMLInputElement).value = user.username;
+    }
     //prüfen ob der Username bereits registriert wurde, sonst Hinweis ausgeben
     for (let i: number=0; i < userlist.length; i++){
         if(userlist[i].username == username){
@@ -281,48 +298,34 @@ function renderUserlist(): void {
 
     // AJAX Request
     axios.get("/users").then((res: AxiosResponse) => {
-
-        for (var value in res.data) {
-            console.log(res.data[value]);
-
-
-            for (let i: number = 0; i < 1; i++) {
-                const user: User = userlist[i];
-                const row: HTMLElement = document.createElement("tr");
-                row.setAttribute("id", "row" + i);
-                row.innerHTML = `
-            <td class="col-3">${res.data[value]["username"]}</td>
-            <td class="col-3">${res.data[value]["vorname"]}</td>
-            <td class="col-3">${res.data[value]["nachname"]}</td>
-            <td class="col-3" id="buttonliste">
-               <button type="submit" class="edit-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${res.data[value]["username"]}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                    <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
-                    </svg>
-                Editieren</button>
-                <button type="submit" class="delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${res.data[value]["username"]}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                    </svg>
-                Löschen</button>
-                <button type="submit" class="password-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${res.data[value]["username"]}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key-fill" viewBox="0 0 16 16">
-                    <path d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-                    </svg>
-                Passwort ändern</button>
-            </td>`;
-
-                table.appendChild(row);
-            }
-
-
-
-
-
+        let i: number = 0;
+        for (let value in res.data) {
+            const row: HTMLElement = document.createElement("tr");
+            row.setAttribute("id", "row" + i);
+            row.innerHTML = `
+                <td class="col-3">${res.data[value]["username"]}</td>
+                <td class="col-3">${res.data[value]["vorname"]}</td>
+                <td class="col-3">${res.data[value]["nachname"]}</td>
+                <td class="col-3" id="buttonliste">
+                   <button type="submit" class="edit-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                        <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+                        </svg>
+                    Editieren</button>
+                    <button type="submit" class="delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                        </svg>
+                    Löschen</button>
+                    <button type="submit" class="password-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key-fill" viewBox="0 0 16 16">
+                        <path d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                        </svg>
+                    Passwort ändern</button>
+                </td>`;
+            table.appendChild(row);
+            i++;
         }
-
-
-
     }).catch((err: AxiosError) => {
         if(err.response.status == 401) {
             console.log("Das geht nur angemeldet!");
@@ -330,38 +333,47 @@ function renderUserlist(): void {
             console.log("Anfrage Fehlgeschlagen")
         }
     });
-
-
-
 }
 
-function editUser(index): void {
-    let Zeile: HTMLElement = document.getElementById("row" + index);
+function editUser(Zeile: HTMLElement, index: number, username: string, vorname: string, nachname: string): void {
     Zeile.innerHTML = "";
-    const user: User = userlist[index];
     const editrow: HTMLElement = document.createElement("tr");
     editrow.innerHTML = `
         <form id="edit-form">
-        <td class="col-3"><input type="text" value="${user.username}" id="edit-uname"></td>
-        <td class="col-3"><input type="text" value="${user.vorname}" id="edit-fname"></td>
-        <td class="col-3"><input type="text" value="${user.vorname}" id="edit-lname"></td>
-        <td class="col-3"><button type="submit" class="save-button" data-index="${index}">Bestätigen</button></td>
-        <td class="col-3"><button type="submit" class="cancel-button" data-index="${index}">Abbrechen</button></td>
-     
+            <td class="col-3"><input type="text" readonly value="${username}" id="edit-uname"></td>
+            <td class="col-3"><input type="text" value="${vorname}" id="edit-fname"></td>
+            <td class="col-3"><input type="text" value="${nachname}" id="edit-lname"></td>
+            <td class="col-3"><button type="submit" class="save-button" data-index="${index}">Bestätigen</button></td>
+            <td class="col-3"><button type="submit" class="cancel-button" data-index="${index}">Abbrechen</button></td>
         </form>`;
     Zeile.replaceWith(editrow);
 }
 
-function deleteUser(index): void {
-    userlist.splice(index, 1);
+function deleteUser(username: string | number): void {
+    axios.delete("/user/" + username).then(()=>{
+        console.log("Löschen erfolgreich!");
+    })
+        .catch((err : AxiosError) => {
+            if(err.response.status == 404) {
+                console.log("Der Benutzername ist nicht bekannt");
+            } else {
+                console.log(err.response.status);
+            }
+        });
     renderUserlist();
 }
 
-function saveUser(index): void {
-    const user: User = userlist[index];
-    user.vorname = (document.getElementById("edit-fname") as HTMLInputElement).value;
-    user.nachname = (document.getElementById("edit-lname") as HTMLInputElement).value;
-    userlist[index] = user;
+function saveUser(username: string, vorname: string, nachname: string): void {
+    axios.put("/user/" + username, {username: username, vorname: vorname, nachname: nachname}).then(()=>{
+            console.log("Speichern erfolgreich!");
+        })
+        .catch((err : AxiosError) => {
+            if(err.response.status == 404) {
+                console.log("Der Benutzername ist nicht bekannt");
+            } else {
+                console.log(err.response.status);
+            }
+        });
     renderUserlist();
 }
 

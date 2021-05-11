@@ -8,7 +8,7 @@ POST /user HTTP/2
 Host: localhost:8080
 Content-Type: application/json
 
-{"username":"Testusername2","vorname":"Testvorname","nachname":"Testnachname","passwort":"Testpasswort"}
+{"username":"Testusername","vorname":"Testvorname","nachname":"Testnachname","passwort":"Testpasswort"}
 
 ###
 // Daten von Testuser zurückgeben - read
@@ -21,7 +21,7 @@ PUT /user/Testusername HTTP/1.1
 Host: localhost:8080
 Content-Type: application/json
 
-{"username":"Testusername2","vorname":"Testvorname1","nachname":"Testnachname2"}
+{"username":"Testusername","vorname":"Testvorname1","nachname":"Testnachname2"}
 
 ###
 // Testuser löschen - delete
