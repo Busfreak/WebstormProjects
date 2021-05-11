@@ -47,14 +47,14 @@ router.use("/lib", express.static(__dirname + "/node_modules"));
 // Routen für REST
 router.post("/user", postUser);
 router.get("/user/:username", getUser);
-router.delete("/user/:username", deleteUser)
-router.put("/user/:username", updateUser)
+router.delete("/user/:username", deleteUser);
+router.put("/user/:username", updateUser);
 router.get("/users", getUsers);
 
 router.post("/pet", postPet);
 router.get("/pet/:tiername", getPet);
-router.delete("/pet/:tiername", deletePet)
-router.put("/pet/:tiername", updatePet)
+router.delete("/pet/:tiername", deletePet);
+router.put("/pet/:tiername", updatePet);
 
 
 // Funktionen für REST
@@ -106,8 +106,8 @@ function updateUser(req: express.Request, res: express.Response): void {
 //    res.send("Der User mit dem Usernamen " + username + " wurde aktualisiert :)");
     if (users.has(username)) {
         const u: User = users.get(username);
-        u.vorname = vorname;
-        u.nachname = nachname;
+        if (vorname.length > 0) {u.vorname = vorname}
+        if (nachname.length  > 0) {u.nachname = nachname}
         res.sendStatus(200);
     } else {
         res.sendStatus(404);
