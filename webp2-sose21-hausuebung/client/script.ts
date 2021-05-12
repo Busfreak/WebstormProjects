@@ -18,8 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
     renderPetForm();
     renderUserlist();
 
+    // Listener für Anmeldung / Registrierung, hängen am Element inhalt
     document.getElementById("inhalt").addEventListener("click", (event: Event) => {
         event.preventDefault();
+        // was wurde angeklick?
         const ziel: HTMLElement = event.target as HTMLElement;
 
         //listener für Anmeldedialog
@@ -36,35 +38,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
 
-    //listener für Bearbeitung von Usern
+    //listener für Bearbeitung von Usern, hängen am Element user-table
     document.getElementById("user-table").addEventListener("click", (event: Event) => {
         event.preventDefault();
+        // was wurde angeklick?
         const ziel: HTMLElement = event.target as HTMLElement;
+        // welchen Zeilenindex hat das angeklickte Element?
         const index: number = Number(ziel.dataset.index);
+        // welche Werte stehen in der angeklickten Zeile?
+        const Zeile: HTMLElement = document.getElementById("row" + index);
+        const username = Zeile.getElementsByTagName("td").item(0).innerText;
+        const vorname = Zeile.getElementsByTagName("td").item(1).innerText;
+        const nachname = Zeile.getElementsByTagName("td").item(2).innerText;
+
+        // Edit-Button
         if (ziel.matches(".edit-button")) {
-            let Zeile: HTMLElement = document.getElementById("row" + index);
-            let username = Zeile.getElementsByTagName("td").item(0).innerText;
-            let vorname = Zeile.getElementsByTagName("td").item(1).innerText;
-            let nachname = Zeile.getElementsByTagName("td").item(2).innerText;
             editUser(Zeile, index, username, vorname, nachname);
         }
+        // Delete-Button
         if (ziel.matches(".delete-button")) {
-            let Zeile: HTMLElement = document.getElementById("row" + index);
-            let username = Zeile.getElementsByTagName("td").item(0).innerText;
             deleteUser(username);
         }
+        // Save-Button
         if (ziel.matches(".save-button")) {
-            const username = (document.getElementById("edit-uname") as HTMLInputElement).value;
-            const vorname = (document.getElementById("edit-fname") as HTMLInputElement).value;
-            const nachname = (document.getElementById("edit-lname") as HTMLInputElement).value;
+            // die Daten stehen in neuen Input-Feldern, deshalb müssen sie hier gesondert ausgelesen werden
+            const username = (document.getElementById("edit-uname") as HTMLInputElement).value.trim();
+            const vorname = (document.getElementById("edit-fname") as HTMLInputElement).value.trim();
+            const nachname = (document.getElementById("edit-lname") as HTMLInputElement).value.trim();
             saveUser(username, vorname, nachname);
+            renderUserlist();
         }
+        // Cancel-Button
         if (ziel.matches(".cancel-button")) {
             renderUserlist();
         }
+        // Passwort ändern Button
         if (ziel.matches(".password-button")){
             editPassword(index);
         }
+        // Passwort speichern Button
         if (ziel.matches(".password-save-button")){
             checkPassword(index);
         }
@@ -73,14 +85,17 @@ document.addEventListener("DOMContentLoaded", () => {
     //listener für anlegen eines Haustiers
     document.getElementById("petform").addEventListener("click", (event: Event) => {
         event.preventDefault();
+        // tbd
         const ziel: HTMLElement = event.target as HTMLElement;
         if (ziel.matches(".pet-registration-button")) {
             savePet();
         }
     })
+
     //listener für löschen eines Haustiers
     document.getElementById("pettable").addEventListener("click", (event: Event) => {
         event.preventDefault();
+        // tbd
         const ziel: HTMLElement = event.target as HTMLElement;
         const index: number = Number(ziel.dataset.index);
         if (ziel.matches(".pet-delete-button")) {
@@ -89,69 +104,54 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 })
 
-// tbd: Eingaben prüfen, Formular erst usblenden, wenn alles korrekt und abgespeichert ist
+// Resgistrierungsformular prüfen, korrigieren und speichern
 function saveRegistration():void {
     const form: HTMLFormElement = document.getElementById("form") as HTMLFormElement;
-    //Eingaben auslesen
-    const vorname: string = (document.getElementById("vorname") as HTMLInputElement). value;
-    const nachname: string = (document.getElementById("nachname") as HTMLInputElement). value;
-    const username: string = (document.getElementById("username") as HTMLInputElement). value;
-    const passwort: string = (document.getElementById("passwort") as HTMLInputElement). value;
+    // Eingaben auslesen und Leerzeichen trimmen
+    const vorname: string = (document.getElementById("vorname") as HTMLInputElement).value.trim();
+    const nachname: string = (document.getElementById("nachname") as HTMLInputElement).value.trim();
+    const username: string = (document.getElementById("username") as HTMLInputElement).value.trim();
+    const passwort: string = (document.getElementById("passwort") as HTMLInputElement).value.trim();
 
-    //Eingaben ins user speichern und Leerzeichen trimmen
-    let user: User = new User();
-    user.vorname = vorname.trim();
-    user.nachname = nachname.trim();
-    user.username = username.trim();
-    user.passwort = passwort.trim();
-
-    //Werte wieder ins Formular schreiben
-    (document.getElementById("vorname") as HTMLInputElement).value = user.vorname;
-    (document.getElementById("nachname") as HTMLInputElement).value = user.nachname;
-    (document.getElementById("username") as HTMLInputElement).value = user.username;
-    (document.getElementById("passwort") as HTMLInputElement).value = user.passwort;
+    // Werte wieder ins Formular schreiben
+    (document.getElementById("vorname") as HTMLInputElement).value = vorname;
+    (document.getElementById("nachname") as HTMLInputElement).value = nachname;
+    (document.getElementById("username") as HTMLInputElement).value = username;
+    (document.getElementById("passwort") as HTMLInputElement).value = passwort;
 
     // prüfen, ob der Username Leerzeichen enthält
-    const test = user.username.split(" ");
+    const test = username.split(" ");
     if (test.length > 1) {
         alert("Der Username darf keine Leerzeichen enthalten!");
-        user.username = "";
-        (document.getElementById("username") as HTMLInputElement).value = user.username;
+        (document.getElementById("username") as HTMLInputElement).value = "";
     }
-    //prüfen ob der Username bereits registriert wurde, sonst Hinweis ausgeben
-    for (let i: number=0; i < userlist.length; i++){
-        if(userlist[i].username == username){
-            (document.getElementById("username")as HTMLInputElement).value = "Username ist bereits vergeben";
-            alert("Der Username ist leider schon vergeben. Überleg dir bitte einen anderen!")
-        }
-    }
-    //Formular prüfen, wenn Ok - user in userlist übernehmen
+
+    //Formular prüfen, wenn Ok speichern
     const val: boolean = form.reportValidity();
     if (val) {
-        userlist.push(user);
-// AJAX Request
+        // AJAX Request: neuen User speichern
         axios.post("/user", {
             username: username,
             vorname: vorname,
             nachname: nachname,
             passwort: passwort
-        })
-            .then(()=>{
+        }).then(()=>{
                 console.log("Speichern erfolgreich!");
+                form.reset();
+                renderUserlist();
+                renderLoginForm();
             })
             .catch((err : AxiosError) => {
                 if(err.response.status == 403) {
+                    //die Prüfung ergab, dass der Username bereits registriert wurde
                     console.log("Benutzername ist breits vergeben");
+                    alert("Der Username ist leider schon vergeben. Überleg dir bitte einen anderen!");
+                    (document.getElementById("username")as HTMLInputElement).value = "Username ist bereits vergeben";
                 } else {
-                    console.log("Fehler in der Anmeldung");
+                    console.log("Es ist ein Fehler aufgetreten: " + err.response.status);
                 }
             });
-
-
-form.reset();
-        renderUserlist();
     }
-    renderLoginForm();
 }
 
 function login():void{
@@ -159,26 +159,23 @@ function login():void{
     console.log("Login wird geprüft");
 }
 
+// Login Formular erstellen und anzeigen
 function renderLoginForm(){
     const inhalt: HTMLDivElement = document.getElementById("inhalt") as HTMLDivElement;
     inhalt.innerHTML = `
-           <p>Anmelden</p>
-        <form id="form1">
-            <label for="username">
-                <input type="text"  id="username1" placeholder="Username">
-            </label>
-            <label for="passwort">
-                <input type="password" id="passwort1" Placeholder="Passwort">
-            </label>
+        <p>Anmelden</p>
+        <form id="loginform">
+            <label for="username"><input type="text"  id="username1" placeholder="Username"></label>
+            <label for="passwort"><input type="password" id="passwort1" Placeholder="Passwort"></label>
             <button type="submit" class="login-button btn btn-outline-primary btn-sm line-darkred text-red">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
                 <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
                 </svg>
             Anmelden</button>
-    <div>
-        <p>Du hast noch keinen Account, möchtest aber deine Haustiere präsentieren und die der anderen bewundern?</p>
-        <p>Dann registriere dich jetzt und freu dich auf ein flauschiges Miteinander!</p>
-    </div>
+            <div>
+                <p>Du hast noch keinen Account, möchtest aber deine Haustiere präsentieren und die der anderen bewundern?</p>
+                <p>Dann registriere dich jetzt und freu dich auf ein flauschiges Miteinander!</p>
+            </div>
             <button type="submit" class="registration-form-button btn btn-outline-primary btn-sm line-darkred text-red">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
                 <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
@@ -188,6 +185,7 @@ function renderLoginForm(){
     `;
 }
 
+// Registrierungsformular erstellen und anzeigen
 function renderRegistrationForm():void {
     const inhalt: HTMLDivElement = document.getElementById("inhalt") as HTMLDivElement;
     inhalt.innerHTML = `
@@ -281,8 +279,9 @@ function renderPetlist(): void {
     }
 }
 
+// Userliste erstellen und anzeigen
 function renderUserlist(): void {
-    //Tabellenhead anzeigen
+    // Überschriften erstellen und anzeigen
     let thead: HTMLElement = document.getElementById("user-thead");
     thead.innerHTML = "";
     const editthead: HTMLElement = document.createElement("tr");
@@ -292,15 +291,18 @@ function renderUserlist(): void {
         <th class="col-3 darkred text-color">Nachname:</th>
         <th class="col-3 darkred text-color">Aktionen:</th>`
     thead.appendChild(editthead);
-    //Tabelle erstellen
+    // Tabelle mit Benutzern erstellen und anzeigen
     let table: HTMLElement = document.getElementById("user-table");
     table.innerHTML = "";
 
-    // AJAX Request
+    // AJAX Request: alle User aus Backend abfragen
     axios.get("/users").then((res: AxiosResponse) => {
+        // Zähler für data-index, damit die angeklickte Zeile später gefunden werden kann - kann das auch durch den username ersetzt werden?
         let i: number = 0;
+        // die einzelnen Datensätze aus der Response durchgehen und in die Tabelle einfügen
         for (let value in res.data) {
             const row: HTMLElement = document.createElement("tr");
+            // Zeilennummer setzen
             row.setAttribute("id", "row" + i);
             row.innerHTML = `
                 <td class="col-3">${res.data[value]["username"]}</td>
@@ -327,14 +329,15 @@ function renderUserlist(): void {
             i++;
         }
     }).catch((err: AxiosError) => {
-        if(err.response.status == 401) {
-            console.log("Das geht nur angemeldet!");
+        if(err.response.status == 404) {
+            console.log("Keine Benutzer gefunden.");
         } else {
             console.log("Anfrage Fehlgeschlagen")
         }
     });
 }
 
+// Input-Felder für die Bearbeitung eines Benutzers erstellen und mit den aktuellen Werten befüllen
 function editUser(Zeile: HTMLElement, index: number, username: string, vorname: string, nachname: string): void {
     Zeile.innerHTML = "";
     const editrow: HTMLElement = document.createElement("tr");
@@ -343,13 +346,16 @@ function editUser(Zeile: HTMLElement, index: number, username: string, vorname: 
             <td class="col-3"><input type="text" readonly value="${username}" id="edit-uname"></td>
             <td class="col-3"><input type="text" value="${vorname}" id="edit-fname"></td>
             <td class="col-3"><input type="text" value="${nachname}" id="edit-lname"></td>
+            <-- kann hier der index durch den username ersetzt werden? --> 
             <td class="col-3"><button type="submit" class="save-button" data-index="${index}">Bestätigen</button></td>
             <td class="col-3"><button type="submit" class="cancel-button" data-index="${index}">Abbrechen</button></td>
         </form>`;
     Zeile.replaceWith(editrow);
 }
 
+// Benutzer löschen
 function deleteUser(username: string | number): void {
+    // AJAX Request: Benutzer mit username löschen
     axios.delete("/user/" + username).then(()=>{
         console.log("Löschen erfolgreich!");
     })
@@ -363,7 +369,9 @@ function deleteUser(username: string | number): void {
     renderUserlist();
 }
 
+// Benutzer nach dem Bearbeiten speichern
 function saveUser(username: string, vorname: string, nachname: string): void {
+    // AJAX Request: Benutzer mit username und weiteren Daten speichern
     axios.put("/user/" + username, {username: username, vorname: vorname, nachname: nachname}).then(()=>{
             console.log("Speichern erfolgreich!");
         })
@@ -374,7 +382,6 @@ function saveUser(username: string, vorname: string, nachname: string): void {
                 console.log(err.response.status);
             }
         });
-    renderUserlist();
 }
 
 function editPassword(index): void {
