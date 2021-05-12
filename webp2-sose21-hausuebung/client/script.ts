@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 })
 
+// Funktionen für Benutzerverwaltung
 // Resgistrierungsformular prüfen, korrigieren und speichern
 function saveRegistration():void {
     const form: HTMLFormElement = document.getElementById("form") as HTMLFormElement;
@@ -159,6 +160,87 @@ function login():void{
     console.log("Login wird geprüft");
 }
 
+// Benutzer nach dem Bearbeiten speichern
+function saveUser(username: string, vorname: string, nachname: string): void {
+    // AJAX Request: Benutzer mit username und weiteren Daten speichern
+    axios.put("/user/" + username, {username: username, vorname: vorname, nachname: nachname}).then(()=>{
+        console.log("Speichern erfolgreich!");
+    })
+        .catch((err : AxiosError) => {
+            if(err.response.status == 404) {
+                console.log("Der Benutzername ist nicht bekannt");
+            } else {
+                console.log(err.response.status);
+            }
+        });
+}
+
+// Benutzer löschen
+function deleteUser(username: string | number): void {
+    // AJAX Request: Benutzer mit username löschen
+    axios.delete("/user/" + username).then(()=>{
+        console.log("Löschen erfolgreich!");
+    })
+        .catch((err : AxiosError) => {
+            if(err.response.status == 404) {
+                console.log("Der Benutzername ist nicht bekannt");
+            } else {
+                console.log(err.response.status);
+            }
+        });
+    renderUserlist();
+}
+
+function checkPassword(index): void {
+    const user: User = userlist[index];
+    const oldpassword: string = (document.getElementById("oldpassword")as HTMLInputElement).value;
+    const password1: string = (document.getElementById("password1")as HTMLInputElement).value;
+    const password2: string = (document.getElementById("password2")as HTMLInputElement).value;
+    if(oldpassword != user.passwort){
+        (document.getElementById("oldpassword") as HTMLInputElement).setCustomValidity("Das alte Passwort ist nicht korrekt!");
+        alert("Das alte Passwort ist nicht korrekt!");
+    } else{
+        (document.getElementById("oldpassword") as HTMLInputElement).setCustomValidity("");
+        if(password1.trim().length==0){
+            (document.getElementById("password1") as HTMLInputElement). setCustomValidity("Passwort darf nicht leer sein!");
+            (document.getElementById("password1") as HTMLInputElement).value = "";
+            alert("Passwort darf nicht leer sein oder nur aus Leerezichen bestehen!");
+        } else{
+            (document.getElementById("password1") as HTMLInputElement).setCustomValidity("");
+            if (password1 != password2){
+                (document.getElementById("password2") as HTMLInputElement).setCustomValidity("Passwörter müssen übereinstimmen!");
+                alert("Passwörter müssen übereinstimmen!");
+            } else {
+                (document.getElementById("password2") as HTMLInputElement).setCustomValidity("");
+                user.passwort =password2;
+                userlist[index] = user;
+                renderUserlist();
+            }
+        }
+    }
+}
+
+// Funktionen für die Tierverwaltung
+function savePet():void {
+    const form: HTMLFormElement = document.getElementById("petform1") as HTMLFormElement;
+    //Eingaben auslesen
+    const tiername: string = (document.getElementById("tiername") as HTMLInputElement). value;
+    const tierart: string = (document.getElementById("tierart") as HTMLInputElement). value;
+    let pet: Pet = new Pet();
+    pet.tiername = tiername.trim();
+    pet.tierart = tierart.trim();
+    petList.push(pet);
+    const val: boolean = form.reportValidity();
+    form.reset();
+    renderPetlist();
+}
+
+function deletePet(index): void {
+    petList.splice(index, 1);
+    renderPetlist();
+}
+
+// Render-Funktionen
 // Login Formular erstellen und anzeigen
 function renderLoginForm(){
     const inhalt: HTMLDivElement = document.getElementById("inhalt") as HTMLDivElement;
@@ -203,80 +285,6 @@ function renderRegistrationForm():void {
                 </svg>
             jetzt Registrieren</button>
     </form>`;
-}
-
-function savePet():void {
-    const form: HTMLFormElement = document.getElementById("petform1") as HTMLFormElement;
-    //Eingaben auslesen
-    const tiername: string = (document.getElementById("tiername") as HTMLInputElement). value;
-    const tierart: string = (document.getElementById("tierart") as HTMLInputElement). value;
-    let pet: Pet = new Pet();
-    pet.tiername = tiername.trim();
-    pet.tierart = tierart.trim();
-    petList.push(pet);
-    const val: boolean = form.reportValidity();
-    form.reset();
-    renderPetlist();
-}
-
-function deletePet(index): void {
-    petList.splice(index, 1);
-    renderPetlist();
-}
-
-function renderPetForm(){
-    const petform: HTMLDivElement = document.getElementById("petform") as HTMLDivElement;
-    petform.innerHTML = `
-           <H2>dein Haustier</H2>
-        <form id="petform1">
-            <label for="tiername"><input type="text" id="tiername" Placeholder="Tiername"></label>
-            <label for="tierart"><input type="text" id="tierart" placeholder="Tiername"></label>
-            <button type="submit" class="pet-registration-button btn btn-outline-primary btn-sm line-darkred text-red">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
-                </svg>
-            Speichern</button>
-        </form>
-    `;
-
-}
-
-function renderPetlist(): void {
-    console.log(petList.length);
-    //Tabellenhead anzeigen
-    const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
-    pettable.innerHTML = `
-        <table>
-            <thead>
-                <th class="col-3 darkred text-color">Tierart:</th>
-                <th class="col-3 darkred text-color">Name:</th>
-                <th class="col-3 darkred text-color">bearbeiten</th>
-            </thead>
-            <tbody id="pet-table"></tbody>
-        </table>
-    `;
-
-    //Tabelle erstellen
-    let table: HTMLElement = document.getElementById("pet-table");
-    table.innerHTML = "";
-
-    for (let i: number = 0; i < petList.length; i++) {
-        const pet: Pet = petList[i];
-        const row: HTMLElement = document.createElement("tr");
-        row.setAttribute("id", "row" + i);
-        row.innerHTML = `
-            <td class="col-3">${pet.tierart}</td>
-            <td class="col-3">${pet.tiername}</td>
-            <td class="col-3" id="buttonliste">
-                <button type="submit" class="pet-delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                    </svg>
-                Löschen</button>
-            </td>`;
-
-        table.appendChild(row);
-    }
 }
 
 // Userliste erstellen und anzeigen
@@ -353,37 +361,7 @@ function editUser(Zeile: HTMLElement, index: number, username: string, vorname: 
     Zeile.replaceWith(editrow);
 }
 
-// Benutzer löschen
-function deleteUser(username: string | number): void {
-    // AJAX Request: Benutzer mit username löschen
-    axios.delete("/user/" + username).then(()=>{
-        console.log("Löschen erfolgreich!");
-    })
-        .catch((err : AxiosError) => {
-            if(err.response.status == 404) {
-                console.log("Der Benutzername ist nicht bekannt");
-            } else {
-                console.log(err.response.status);
-            }
-        });
-    renderUserlist();
-}
-
-// Benutzer nach dem Bearbeiten speichern
-function saveUser(username: string, vorname: string, nachname: string): void {
-    // AJAX Request: Benutzer mit username und weiteren Daten speichern
-    axios.put("/user/" + username, {username: username, vorname: vorname, nachname: nachname}).then(()=>{
-            console.log("Speichern erfolgreich!");
-        })
-        .catch((err : AxiosError) => {
-            if(err.response.status == 404) {
-                console.log("Der Benutzername ist nicht bekannt");
-            } else {
-                console.log(err.response.status);
-            }
-        });
-}
-
+// Eingabefelder für Passwortänderung erstellen und anzeigen
 function editPassword(index): void {
     //Tabellenhead neu beschriften
     let thead: HTMLElement = document.getElementById("user-thead");
@@ -415,32 +393,58 @@ function editPassword(index): void {
     Zeile.replaceWith(editrow);
 }
 
-function checkPassword(index): void {
-    const user: User = userlist[index];
-    const oldpassword: string = (document.getElementById("oldpassword")as HTMLInputElement).value;
-    const password1: string = (document.getElementById("password1")as HTMLInputElement).value;
-    const password2: string = (document.getElementById("password2")as HTMLInputElement).value;
-    if(oldpassword != user.passwort){
-        (document.getElementById("oldpassword") as HTMLInputElement).setCustomValidity("Das alte Passwort ist nicht korrekt!");
-        alert("Das alte Passwort ist nicht korrekt!");
-    } else{
-        (document.getElementById("oldpassword") as HTMLInputElement).setCustomValidity("");
-        if(password1.trim().length==0){
-            (document.getElementById("password1") as HTMLInputElement). setCustomValidity("Passwort darf nicht leer sein!");
-            (document.getElementById("password1") as HTMLInputElement).value = "";
-            alert("Passwort darf nicht leer sein oder nur aus Leerezichen bestehen!");
-        } else{
-            (document.getElementById("password1") as HTMLInputElement).setCustomValidity("");
-            if (password1 != password2){
-                (document.getElementById("password2") as HTMLInputElement).setCustomValidity("Passwörter müssen übereinstimmen!");
-                alert("Passwörter müssen übereinstimmen!");
-            } else {
-                (document.getElementById("password2") as HTMLInputElement).setCustomValidity("");
-                user.passwort =password2;
-                userlist[index] = user;
-                renderUserlist();
-            }
-        }
+function renderPetForm(){
+    const petform: HTMLDivElement = document.getElementById("petform") as HTMLDivElement;
+    petform.innerHTML = `
+           <H2>dein Haustier</H2>
+        <form id="petform1">
+            <label for="tiername"><input type="text" id="tiername" Placeholder="Tiername"></label>
+            <label for="tierart"><input type="text" id="tierart" placeholder="Tiername"></label>
+            <button type="submit" class="pet-registration-button btn btn-outline-primary btn-sm line-darkred text-red">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+                </svg>
+            Speichern</button>
+        </form>
+    `;
+
+}
+
+function renderPetlist(): void {
+    console.log(petList.length);
+    //Tabellenhead anzeigen
+    const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
+    pettable.innerHTML = `
+        <table>
+            <thead>
+                <th class="col-3 darkred text-color">Tierart:</th>
+                <th class="col-3 darkred text-color">Name:</th>
+                <th class="col-3 darkred text-color">bearbeiten</th>
+            </thead>
+            <tbody id="pet-table"></tbody>
+        </table>
+    `;
+
+    //Tabelle erstellen
+    let table: HTMLElement = document.getElementById("pet-table");
+    table.innerHTML = "";
+
+    for (let i: number = 0; i < petList.length; i++) {
+        const pet: Pet = petList[i];
+        const row: HTMLElement = document.createElement("tr");
+        row.setAttribute("id", "row" + i);
+        row.innerHTML = `
+            <td class="col-3">${pet.tierart}</td>
+            <td class="col-3">${pet.tiername}</td>
+            <td class="col-3" id="buttonliste">
+                <button type="submit" class="pet-delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                    </svg>
+                Löschen</button>
+            </td>`;
+
+        table.appendChild(row);
     }
 }
 
