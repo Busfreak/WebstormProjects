@@ -14,6 +14,22 @@ class User {
         this.nachname = nachname;
         this.passwort = passwort;
     }
+
+    get userInfo() {
+        let jsonObject = {};
+        jsonObject["username"] = this.username;
+        jsonObject["vorname"] = this.vorname;
+        jsonObject["nachname"] = this.nachname;
+        return jsonObject;
+    }
+
+    get getPasswort() {
+        return this.passwort;
+    }
+
+    set setPasswort(newPassword) {
+        this.passwort = newPassword;
+    }
 }
 class Pet {
     public readonly tiername: string;
@@ -50,6 +66,7 @@ router.get("/user/:username", getUser);
 router.delete("/user/:username", deleteUser);
 router.put("/user/:username", updateUser);
 router.get("/users", getUsers);
+router.post("/savepassword", savePassword);
 
 router.post("/pet", postPet);
 router.get("/pet/:tiername", getPet);
@@ -119,13 +136,32 @@ function getUsers(req: express.Request, res: express.Response): void {
     if (users.size > 0) {
         let jsonObject = {};
         users.forEach((value, key) => {
-            delete value["passwort"];
-            jsonObject[key] = value
+            jsonObject[key] = value.userInfo;
         });
         res.status(200);
         res.json(jsonObject);
     } else {
         res.sendStatus(404);
+    }
+}
+
+// Passwort prüfen und speichern
+function savePassword(req: express.Request, res: express.Response): void {
+    const username: string = req.body.username;
+    const oldPassword: string = req.body.old;
+    const newPassword: string = req.body.new;
+    if (users.has(username)) {
+        const u: User = users.get(username);
+        console.log(u.getPasswort);
+        if(oldPassword != u.getPasswort) {
+            // Anfrage nicht erlaubt - "Das alte Passwort ist nicht korrekt!"
+            res.sendStatus(403);
+        } else {
+            u.setPasswort = newPassword;
+            res.sendStatus(200);
+            }
+        } else {
+        res.sendStatus(401);
     }
 }
 

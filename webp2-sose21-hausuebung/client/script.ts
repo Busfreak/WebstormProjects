@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // Passwort speichern Button
         if (ziel.matches(".password-save-button")){
-            checkPassword(username, index);
+            checkPassword(username);
         }
     })
 
@@ -188,33 +188,36 @@ function deleteUser(username: String): void {
 }
 
 // Funktion zum Ändern des Passworts
-function checkPassword(username: string, index: number): void {
-    const user: User = userlist[index];
+function checkPassword(username: string): void {
     const oldpassword: string = (document.getElementById("oldpassword")as HTMLInputElement).value.trim();
     const password1: string = (document.getElementById("password1")as HTMLInputElement).value.trim();
     const password2: string = (document.getElementById("password2")as HTMLInputElement).value.trim();
-    if(oldpassword != user.passwort){
-        (document.getElementById("oldpassword") as HTMLInputElement).setCustomValidity("Das alte Passwort ist nicht korrekt!");
-        alert("Das alte Passwort ist nicht korrekt!");
-    } else{
-        (document.getElementById("oldpassword") as HTMLInputElement).setCustomValidity("");
-        if(password1.trim().length==0){
-            (document.getElementById("password1") as HTMLInputElement). setCustomValidity("Passwort darf nicht leer sein!");
-            (document.getElementById("password1") as HTMLInputElement).value = "";
-            alert("Passwort darf nicht leer sein oder nur aus Leerezichen bestehen!");
-        } else{
-            (document.getElementById("password1") as HTMLInputElement).setCustomValidity("");
-            if (password1 != password2){
-                (document.getElementById("password2") as HTMLInputElement).setCustomValidity("Passwörter müssen übereinstimmen!");
-                alert("Passwörter müssen übereinstimmen!");
-            } else {
-                (document.getElementById("password2") as HTMLInputElement).setCustomValidity("");
-                user.passwort =password2;
-                userlist[index] = user;
-                renderUserlist();
-            }
+
+    if(password1.trim().length==0 || password2.trim().length==0) {
+        alert("Passwort darf nicht leer sein oder nur aus Leerezichen bestehen!");
+    } else {
+        if (password1 != password2) {
+            (document.getElementById("password2") as HTMLInputElement).setCustomValidity("Passwörter müssen übereinstimmen!");
+            alert("Passwörter müssen übereinstimmen!");
+        } else {
+            // AJAX Request: neues Passwort speichern
+            axios.post("/savepassword/", {
+                username: username,
+                old: oldpassword,
+                new: password1
+            }).then(() => {
+                console.log("Passwort erfolgreich geändert!");
+            })
+                .catch((err: AxiosError) => {
+                    if (err.response.status == 403) {
+                        console.log("Das Passwort ist falsch!");
+                    } else {
+                        console.log("das war nix: " + err.response.status);
+                    }
+                });
         }
     }
+    renderUserlist();
 }
 
 // Funktionen für die Tierverwaltung
@@ -383,7 +386,7 @@ function editPassword(username: string, index: number): void {
             <td><input type="password" placeholder="altes Passwort" required id="oldpassword"></td>
             <td><input type="password" placeholder="neues Passwort" required id="password1"></td>
             <td><input type="password" placeholder="Wiederholung" required id="password2"></td>
-            <td><button type="submit" class="password-save-button btn btn-primary darkred line-darkred text-color" data-index="${index}" data-username="${username}">
+            <td><button type="submit" class="password-save-button btn btn-primary darkred line-darkred text-color" data-username="${username}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
                 <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
             </svg>
