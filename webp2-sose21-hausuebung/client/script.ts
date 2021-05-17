@@ -1,10 +1,4 @@
 //import axios, {AxiosError, AxiosResponse} from "axios";
-class Pet {
-    tierart: string;
-    tiername: string;
-}
-
-let petList: Pet[] = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     renderLoginForm();
@@ -98,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 // Funktionen für Benutzerverwaltung
-// Resgistrierungsformular prüfen, korrigieren und speichern
+// Resgistrierungsformular prüfen, korrigieren und speichern - create
 function saveRegistration():void {
     const form: HTMLFormElement = document.getElementById("form") as HTMLFormElement;
     // Eingaben auslesen und Leerzeichen trimmen
@@ -148,12 +142,7 @@ function saveRegistration():void {
     }
 }
 
-function login():void{
-    console.log();
-    console.log("Login wird geprüft");
-}
-
-// Benutzer nach dem Bearbeiten speichern
+// Benutzer nach dem Bearbeiten speichern - update
 function saveUser(username: string, vorname: string, nachname: string): void {
     // AJAX Request: Benutzer mit username und weiteren Daten speichern
     axios.put("/user/" + username, {username: username, vorname: vorname, nachname: nachname}).then(()=>{
@@ -168,7 +157,7 @@ function saveUser(username: string, vorname: string, nachname: string): void {
         });
 }
 
-// Benutzer löschen
+// Benutzer löschen - delete
 function deleteUser(username: String): void {
     // AJAX Request: Benutzer mit username löschen
     axios.delete("/user/" + username).then(()=>{
@@ -181,6 +170,11 @@ function deleteUser(username: String): void {
                 console.log(err.response.status);
             }
         });
+}
+
+function login():void{
+    console.log();
+    console.log("Login wird geprüft");
 }
 
 // Funktion zum Ändern des Passworts
@@ -218,7 +212,7 @@ function checkPassword(username: string): void {
 
 // Funktionen für die Tierverwaltung
 function savePet():void {
-    const form: HTMLFormElement = document.getElementById("petform") as HTMLFormElement;
+    const form: HTMLFormElement = document.getElementById("petinputform") as HTMLFormElement;
     //Eingaben auslesen
     const tiername: string = (document.getElementById("tiername") as HTMLInputElement).value.trim();
     const tierart: string = (document.getElementById("tierart") as HTMLInputElement).value.trim();
@@ -239,7 +233,7 @@ function savePet():void {
                 tierart: tierart
             }).then(()=>{
                 console.log("Speichern erfolgreich!");
-// is not a function???                form.reset();
+                form.reset();
             })
                 .catch((err : AxiosError) => {
                     if(err.response.status == 403) {
@@ -368,10 +362,10 @@ function renderUserlist(): void {
             i++;
         }
     }).catch((err: AxiosError) => {
-        if(err.response.status == 404) {
+        if(err.response.status == 204) {
             console.log("Keine Benutzer gefunden.");
         } else {
-            console.log("Anfrage Fehlgeschlagen")
+            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
         }
     });
 }
@@ -431,8 +425,8 @@ function editPassword(username: string, index: number): void {
 function renderPetForm(){
     const petform: HTMLDivElement = document.getElementById("petform") as HTMLDivElement;
     petform.innerHTML = `
-           <H2>dein Haustier</H2>
-        <form id="petform">
+        <H2>dein Haustier</H2>
+        <form id="petinputform">
             <label for="tiername"><input type="text" id="tiername" Placeholder="Tiername"></label>
             <label for="tierart"><input type="text" id="tierart" placeholder="Tierart"></label>
             <button type="submit" class="pet-registration-button btn btn-outline-primary btn-sm line-darkred text-red">
@@ -492,10 +486,10 @@ function renderPetlist(): void {
             i++;
         }
     }).catch((err: AxiosError) => {
-        if(err.response.status == 404) {
+        if(err.response.status == 204) {
             console.log("Keine Tiere gefunden.");
         } else {
-            console.log("Anfrage Fehlgeschlagen")
+            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
         }
     });
 }
