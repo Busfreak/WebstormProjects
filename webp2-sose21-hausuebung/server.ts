@@ -69,7 +69,7 @@ router.get("/users", getUsers);
 router.post("/savepassword", savePassword);
 
 router.post("/pet", postPet);
-router.get("/pet/:tiername", getPet);
+router.get("/pets", getPets);
 router.delete("/pet/:tiername", deletePet);
 router.put("/pet/:tiername", updatePet);
 
@@ -152,7 +152,7 @@ function savePassword(req: express.Request, res: express.Response): void {
     const newPassword: string = req.body.new;
     if (users.has(username)) {
         const u: User = users.get(username);
-        console.log(u.getPasswort);
+        console.log(u);
         if(oldPassword != u.getPasswort) {
             // Anfrage nicht erlaubt - "Das alte Passwort ist nicht korrekt!"
             res.sendStatus(403);
@@ -177,13 +177,15 @@ function postPet(req: express.Request, res: express.Response): void {
     }
 }
 
-// Tier auslesen und zurück senden
-function getPet(req: express.Request, res: express.Response): void {
-    const tiername: string = req.params.tiername;
-    if (pets.has(tiername)) {
-        const p: Pet = pets.get(tiername);
+// Tiere auslesen und zurück senden
+function getPets(req: express.Request, res: express.Response): void {
+    if (pets.size > 0) {
+        let jsonObject = {};
+        pets.forEach((value, key) => {
+            jsonObject[key] = value;
+        });
         res.status(200);
-        res.json({"tiername":p.tiername,"tierart":p.tierart});
+        res.json(jsonObject);
     } else {
         res.sendStatus(404);
     }

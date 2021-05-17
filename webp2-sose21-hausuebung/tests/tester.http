@@ -49,8 +49,8 @@ Content-Type: application/json
 {"tiername":"Testtiername","tierart":"Testtierart"}
 
 ###
-// Daten von Testtier zurückgeben - read
-GET /pet/Testtiername HTTP/1.1
+// Daten von Tieren zurückgeben - read
+GET /pets HTTP/1.1
 Host: localhost:8080
 
 ###

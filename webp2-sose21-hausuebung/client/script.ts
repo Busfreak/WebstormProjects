@@ -1,22 +1,16 @@
 //import axios, {AxiosError, AxiosResponse} from "axios";
-class User{
-    vorname: string;
-    nachname: string;
-    username: string;
-    passwort: string;
-}
 class Pet {
     tierart: string;
     tiername: string;
 }
 
-let userlist: User[] = [];
 let petList: Pet[] = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     renderLoginForm();
     renderPetForm();
     renderUserlist();
+    renderPetlist();
 
     // Listener für Anmeldung / Registrierung, hängen am Element inhalt
     document.getElementById("inhalt").addEventListener("click", (event: Event) => {
@@ -86,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const ziel: HTMLElement = event.target as HTMLElement;
         if (ziel.matches(".pet-registration-button")) {
             savePet();
+            renderPetlist();
         }
     })
 
@@ -94,9 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         // tbd
         const ziel: HTMLElement = event.target as HTMLElement;
-        const index: number = Number(ziel.dataset.index);
+        const tiername: string = String(ziel.dataset.tiername);
         if (ziel.matches(".pet-delete-button")) {
-            deletePet(index);
+            deletePet(tiername);
+            renderPetlist();
         }
     })
 })
@@ -222,22 +218,57 @@ function checkPassword(username: string): void {
 
 // Funktionen für die Tierverwaltung
 function savePet():void {
-    const form: HTMLFormElement = document.getElementById("petform1") as HTMLFormElement;
+    const form: HTMLFormElement = document.getElementById("petform") as HTMLFormElement;
     //Eingaben auslesen
-    const tiername: string = (document.getElementById("tiername") as HTMLInputElement). value;
-    const tierart: string = (document.getElementById("tierart") as HTMLInputElement). value;
-    let pet: Pet = new Pet();
-    pet.tiername = tiername.trim();
-    pet.tierart = tierart.trim();
-    petList.push(pet);
-    const val: boolean = form.reportValidity();
-    form.reset();
-    renderPetlist();
+    const tiername: string = (document.getElementById("tiername") as HTMLInputElement).value.trim();
+    const tierart: string = (document.getElementById("tierart") as HTMLInputElement).value.trim();
+
+    // prüfen, ob der Tiername leer ist
+    if (tiername.length == 0) {
+        alert("Der Tiername darf nicht leer sein!");
+    } else {
+        // prüfen, ob der Tiername Leerzeichen enthält
+        const test = tiername.split(" ");
+        if (test.length > 1) {
+            alert("Der Tiername darf keine Leerzeichen enthalten!");
+            (document.getElementById("tiername") as HTMLInputElement).value = "";
+        } else {
+            // AJAX Request: neues Tier speichern
+            axios.post("/pet", {
+                tiername: tiername,
+                tierart: tierart
+            }).then(()=>{
+                console.log("Speichern erfolgreich!");
+// is not a function???                form.reset();
+            })
+                .catch((err : AxiosError) => {
+                    if(err.response.status == 403) {
+                        //die Prüfung ergab, dass der Tiername bereits registriert wurde
+                        console.log("Tiername ist breits vergeben");
+                        alert("Der Tiername ist leider schon vergeben. Überleg dir bitte einen anderen!");
+                        (document.getElementById("tiername")as HTMLInputElement).value = "Tiername ist bereits vergeben";
+                    } else {
+                        console.log("Es ist ein Fehler aufgetreten: " + err.response.status);
+                    }
+                });
+        }
+    }
 }
 
-function deletePet(index): void {
-    petList.splice(index, 1);
-    renderPetlist();
+function deletePet(tiername: string): void {
+    console.log(tiername);
+    // AJAX Request: Benutzer mit username löschen
+    axios.delete("/pet/" + tiername).then(()=>{
+        console.log("Löschen erfolgreich!");
+        renderPetlist();
+    })
+        .catch((err : AxiosError) => {
+            if(err.response.status == 404) {
+                console.log("Das Tier ist nicht bekannt");
+            } else {
+                console.log(err.response.status);
+            }
+        });
 }
 
 // Render-Funktionen
@@ -345,7 +376,7 @@ function renderUserlist(): void {
     });
 }
 
-// Input-Felder für die Bearbeitung eines Benutzers erstellen und mit den aktuellen Werten befüllen
+// Eingabefelder für die Bearbeitung eines Benutzers erstellen und mit den aktuellen Werten befüllen
 function editUser(username: string, index: number): void {
     // welche Werte stehen in der angeklickten Zeile?
     const Zeile: HTMLElement = document.getElementById("row" + index);
@@ -396,13 +427,14 @@ function editPassword(username: string, index: number): void {
     Zeile.replaceWith(editrow);
 }
 
+// Eingabefelder für das Anlegen eines neuen Tiers erstellen
 function renderPetForm(){
     const petform: HTMLDivElement = document.getElementById("petform") as HTMLDivElement;
     petform.innerHTML = `
            <H2>dein Haustier</H2>
-        <form id="petform1">
+        <form id="petform">
             <label for="tiername"><input type="text" id="tiername" Placeholder="Tiername"></label>
-            <label for="tierart"><input type="text" id="tierart" placeholder="Tiername"></label>
+            <label for="tierart"><input type="text" id="tierart" placeholder="Tierart"></label>
             <button type="submit" class="pet-registration-button btn btn-outline-primary btn-sm line-darkred text-red">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
                 <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
@@ -413,41 +445,58 @@ function renderPetForm(){
 
 }
 
+// Tierliste erstellen und anzeigen
 function renderPetlist(): void {
-    console.log(petList.length);
-    //Tabellenhead anzeigen
-    const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
-    pettable.innerHTML = `
-        <table>
-            <thead>
-                <th class="col-3 darkred text-color">Tierart:</th>
-                <th class="col-3 darkred text-color">Name:</th>
-                <th class="col-3 darkred text-color">bearbeiten</th>
-            </thead>
-            <tbody id="pet-table"></tbody>
-        </table>
-    `;
+    // AJAX Request: alle User aus Backend abfragen
+    axios.get("/pets").then((res: AxiosResponse) => {
+        //Tabellenhead anzeigen
+        const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
+        pettable.innerHTML = `
+            <table>
+                <thead>
+                    <th class="col-3 darkred text-color">Name:</th>
+                    <th class="col-3 darkred text-color">Tierart:</th>
+                    <th class="col-3 darkred text-color">bearbeiten</th>
+                </thead>
+                <tbody id="pet-table"></tbody>
+            </table>
+        `;
+        //Tabelle erstellen
+        let table: HTMLElement = document.getElementById("pet-table");
+        table.innerHTML = "";
 
-    //Tabelle erstellen
-    let table: HTMLElement = document.getElementById("pet-table");
-    table.innerHTML = "";
+        // Zähler für data-index, damit die angeklickte Zeile später gefunden werden kann
+        let i: number = 0;
 
-    for (let i: number = 0; i < petList.length; i++) {
-        const pet: Pet = petList[i];
-        const row: HTMLElement = document.createElement("tr");
-        row.setAttribute("id", "row" + i);
-        row.innerHTML = `
-            <td class="col-3">${pet.tierart}</td>
-            <td class="col-3">${pet.tiername}</td>
-            <td class="col-3" id="buttonliste">
-                <button type="submit" class="pet-delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-index="${i}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                    </svg>
-                Löschen</button>
-            </td>`;
-
-        table.appendChild(row);
-    }
+        // die einzelnen Datensätze aus der Response durchgehen und in die Tabelle einfügen
+        for (let value in res.data) {
+            const row: HTMLElement = document.createElement("tr");
+            // Zeilennummer setzen
+            row.setAttribute("id", "row" + i);
+            row.innerHTML = `
+                <td class="col-3">${res.data[value]["tiername"]}</td>
+                <td class="col-3">${res.data[value]["tierart"]}</td>
+                <td class="col-3" id="buttonliste">
+                   <button type="submit" class="pet-edit-button btn btn-outline-primary btn-sm line-darkred text-red" data-tiername=${res.data[value]["tiername"]} data-index="${i}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                        <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+                        </svg>
+                    Editieren</button>
+                    <button type="submit" class="pet-delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-tiername=${res.data[value]["tiername"]} data-index="${i}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                        </svg>
+                    Löschen</button>
+                </td>`;
+            table.appendChild(row);
+            i++;
+        }
+    }).catch((err: AxiosError) => {
+        if(err.response.status == 404) {
+            console.log("Keine Tiere gefunden.");
+        } else {
+            console.log("Anfrage Fehlgeschlagen")
+        }
+    });
 }
 
