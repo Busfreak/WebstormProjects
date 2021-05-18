@@ -1,11 +1,25 @@
 import * as express from "express";
 import * as session from "express-session";
+import * as mysql from "mysql";
+
 declare module "express-session" {
     interface Session {
         uname: string;
     }
 }
+
 const PORT: number = 8080;
+const connection: mysql.Connection = mysql.createConnection({
+    database: "webp2",
+    host: "localhost",
+    user: "root"
+});
+connection.connect((err) => {
+    if (err !== null) {
+        console.log("DB-Fehler: " + err);
+    }
+});
+
 const router: express.Express = express();
 
 class User {
@@ -46,7 +60,7 @@ class Pet {
         this.tierart = tierart;
     }
 }
-const users: Map<string, User> = new Map<string, User>();
+//const users: Map<string, User> = new Map<string, User>();
 const pets: Map<string, Pet> = new Map<string, Pet>();
 
 router.listen (PORT, () => {
@@ -288,3 +302,15 @@ function updatePet(req: express.Request, res: express.Response): void {
     }
 }
 
+// Ein eigener Wrapper, um die MySQL-Query als Promise (then/catch Syntax) zu nutzen
+function query(sql: string, param: any[] = []): Promise<any> {
+    return new Promise<any>((resolve: any, reject: any) => {
+        connection.query(sql, param, (err: mysql.MysqlError | null, results: any) => {
+            if (err === null) {
+                resolve(results);
+            } else {
+                reject(err);
+            }
+        });
+    });
+}
