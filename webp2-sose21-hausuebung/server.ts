@@ -86,6 +86,7 @@ router.delete("/user/:username", deleteUser);
 router.put("/user/:username", updateUser);
 router.get("/users", checkLogin, getUsers);
 router.post("/savepassword", savePassword);
+router.get("/loggedin", loggedIn);
 
 router.post("/pet", postPet);
 router.get("/pets", getPets);
@@ -97,13 +98,10 @@ function login(req: express.Request, res: express.Response): void {
     const username: string = req.body.username;
     const passwort: string = req.body.passwort;
     if (users.has(username)) {
-        console.log("User bekannt");
         const u: User = users.get(username);
         if (u.getPasswort === passwort) {
-            console.log("Passwort: " + passwort);
             req.session.uname = username
             res.sendStatus(200);
-//            res.redirect("/");
         } else {
             res.sendStatus(403);
         }
@@ -120,9 +118,22 @@ function logout(req: express.Request, res: express.Response): void {
     });
 }
 
+// Prüfen, ob ein USer angemeldet ist
+function loggedIn(req: express.Request, res: express.Response): void {
+    if (req.session.uname !== undefined) {
+        if (users.has(req.session.uname)) {
+            const u: User = users.get(req.session.uname);
+            res.status(200);
+            res.json({"username": u.username, "vorname": u.vorname, "nachname": u.nachname});
+        }
+    } else {
+        // Client nicht angemeldet
+        res.sendStatus(401);
+    }
+}
+
 // Eine sog. Middleware-Route prüft, ob der Client angemeldet ist und ruft ggf. die nächste Funktion auf
 function checkLogin(req: express.Request, res: express.Response, next: express.NextFunction): void {
-    console.log("Test: " + req.session.uname);
     if (req.session.uname !== undefined) {
         // Ruft die nächste Funktion der Funktioskette
         next();

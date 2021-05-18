@@ -1,10 +1,30 @@
 //import axios, {AxiosError, AxiosResponse} from "axios";
 
 document.addEventListener("DOMContentLoaded", () => {
-    renderLoginForm();
+    renderUserInfo();
     renderPetForm();
     renderUserlist();
     renderPetlist();
+
+    // Listenre für Abmelden, hängt am Element userinfo
+    document.getElementById("userinfo").addEventListener("click", (event: Event) => {
+        event.preventDefault();
+        const ziel: HTMLElement = event.target as HTMLElement;
+
+        //listener für Logout-Button
+        if (ziel.matches(".logout-button")) {
+            logout();
+        }
+        //listener für Login-Button
+        if (ziel.matches(".render-login-button")) {
+            renderLoginForm();
+        }
+        //listener für Registrierungsdialog
+        if (ziel.matches(".registration-form-button")) {
+            renderRegistrationForm();
+        }
+
+    })
 
     // Listener für Anmeldung / Registrierung, hängen am Element inhalt
     document.getElementById("inhalt").addEventListener("click", (event: Event) => {
@@ -15,10 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
         //listener für Anmeldedialog
         if (ziel.matches(".login-button")) {
             login();
-        }
-        //listener für Registrierungsdialog
-        if (ziel.matches(".registration-form-button")) {
-            renderRegistrationForm();
         }
         //listener für Registrierungsbestätigung
         if (ziel.matches(".registration-button")) {
@@ -67,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
 
-    //listener für anlegen eines Haustiers
+    //listener für Anlegen eines Haustiers
     document.getElementById("petform").addEventListener("click", (event: Event) => {
         event.preventDefault();
         // tbd
@@ -92,6 +108,40 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 // Funktionen für Benutzerverwaltung
+// Login/Register/Logout Buttons rendern
+function renderUserInfo(): void {
+    //prüfen, ob ein User angemeldet ist, oder nicht
+    // AJAX Request: alle User aus Backend abfragen
+    axios.get("/loggedin").then((res: AxiosResponse) => {
+        const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
+        userinfo.innerHTML = "angemeldet als: " + res.data["vorname"] + " " + res.data["nachname"] + `
+                    <button type="submit" class="logout-button btn btn-outline-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-right-circle-fill" viewBox="0 0 16 16">
+                    <path d="M0 8a8 8 0 1 0 16 0A8 8 0 0 0 0 8zm5.904 2.803a.5.5 0 1 1-.707-.707L9.293 6H6.525a.5.5 0 1 1 0-1H10.5a.5.5 0 0 1 .5.5v3.975a.5.5 0 0 1-1 0V6.707l-4.096 4.096z"></path>
+                        </svg>
+                    Abmelden</button>
+                `;
+    }).catch((err: AxiosError) => {
+        if(err.response.status == 401) {
+            const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
+            userinfo.innerHTML = "nicht angemeldet" + `
+                    <button type="submit" class="render-login-button btn btn-outline-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-right-circle-fill" viewBox="0 0 16 16">
+                    <path d="M0 8a8 8 0 1 0 16 0A8 8 0 0 0 0 8zm5.904 2.803a.5.5 0 1 1-.707-.707L9.293 6H6.525a.5.5 0 1 1 0-1H10.5a.5.5 0 0 1 .5.5v3.975a.5.5 0 0 1-1 0V6.707l-4.096 4.096z"></path>
+                        </svg>
+                    Anmelden</button>
+                    <button type="submit" class="registration-form-button btn btn-outline-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-right-circle-fill" viewBox="0 0 16 16">
+                    <path d="M0 8a8 8 0 1 0 16 0A8 8 0 0 0 0 8zm5.904 2.803a.5.5 0 1 1-.707-.707L9.293 6H6.525a.5.5 0 1 1 0-1H10.5a.5.5 0 0 1 .5.5v3.975a.5.5 0 0 1-1 0V6.707l-4.096 4.096z"></path>
+                        </svg>
+                    Registrieren</button>
+                `;
+        } else {
+            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
+        }
+    });
+}
+
 // Resgistrierungsformular prüfen, korrigieren und speichern - create
 function saveRegistration():void {
     const form: HTMLFormElement = document.getElementById("form") as HTMLFormElement;
@@ -172,6 +222,7 @@ function deleteUser(username: String): void {
         });
 }
 
+// Login
 function login():void{
     const out: HTMLElement = document.getElementById("out");
     const loginform: HTMLFormElement = document.getElementById("loginform") as HTMLFormElement;
@@ -184,10 +235,12 @@ function login():void{
     })
         .then(()=>{
             axios.get("/user/" + username).then((res: AxiosResponse)=>{
-                const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
-                userinfo.innerHTML = "angemeldet als: " + res.data["nachname"];
+                renderUserInfo();
             })
             loginform.reset();
+            const inhalt: HTMLDivElement = document.getElementById("inhalt") as HTMLDivElement;
+            inhalt.innerHTML = "";
+            renderUserlist();
         })
         .catch((err : AxiosError) => {
             if(err.response.status == 404) {
@@ -197,6 +250,15 @@ function login():void{
                 console.log("Fehler in der Anmeldung");
                 out.innerText = "Fehler in der Anmeldung";
             }
+        });
+}
+
+// Logout
+function logout(): void {
+    axios.post("/logout")
+        .then(() => {
+            console.log("Logout erfolgreich");
+            renderUserInfo();
         });
 }
 
@@ -305,11 +367,6 @@ function renderLoginForm(){
                 <p>Du hast noch keinen Account, möchtest aber deine Haustiere präsentieren und die der anderen bewundern?</p>
                 <p>Dann registriere dich jetzt und freu dich auf ein flauschiges Miteinander!</p>
             </div>
-            <button type="submit" class="registration-form-button btn btn-outline-primary btn-sm line-darkred text-red">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
-                </svg>
-            Registrieren</button>
         </form>
     `;
 }
