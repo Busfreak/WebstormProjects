@@ -81,17 +81,17 @@ router.use("/lib", express.static(__dirname + "/node_modules"));
 
 // Routen für REST
 router.post("/user", postUser);
-router.get("/user/:username", getUser);
-router.delete("/user/:username", deleteUser);
-router.put("/user/:username", updateUser);
+router.get("/user/:username", checkLogin, getUser);
+router.delete("/user/:username", checkLogin, deleteUser);
+router.put("/user/:username", checkLogin, updateUser);
 router.get("/users", checkLogin, getUsers);
-router.post("/savepassword", savePassword);
+router.post("/savepassword", checkLogin, savePassword);
 router.get("/loggedin", loggedIn);
 
-router.post("/pet", postPet);
-router.get("/pets", getPets);
-router.delete("/pet/:tiername", deletePet);
-router.put("/pet/:tiername", updatePet);
+router.post("/pet", checkLogin, postPet);
+router.get("/pets", checkLogin, getPets);
+router.delete("/pet/:tiername", checkLogin, deletePet);
+router.put("/pet/:tiername", checkLogin, updatePet);
 
 // Autorisiert die Session, falls Benutzer registriert ist
 function login(req: express.Request, res: express.Response): void {
@@ -114,11 +114,12 @@ function login(req: express.Request, res: express.Response): void {
 function logout(req: express.Request, res: express.Response): void {
     req.session.destroy(() => {
         res.clearCookie("connect.sid");
+//        res.redirect("/");
         res.sendStatus(200);
     });
 }
 
-// Prüfen, ob ein USer angemeldet ist
+// Prüfen, ob ein User angemeldet ist
 function loggedIn(req: express.Request, res: express.Response): void {
     if (req.session.uname !== undefined) {
         if (users.has(req.session.uname)) {
@@ -176,11 +177,15 @@ function getUser(req: express.Request, res: express.Response): void {
 function deleteUser(req: express.Request, res: express.Response): void {
     const username: string = req.params.username;
 //    res.send("Der User mit dem Usernamen " + username + " wurde gelöscht :)");
-    if (users.has(username)) {
-        users.delete(username);
-        res.sendStatus(200);
+    if (req.session.uname != username) {
+        if (users.has(username)) {
+            users.delete(username);
+            res.sendStatus(200);
+        } else {
+            res.sendStatus(404);
+        }
     } else {
-        res.sendStatus(404);
+        res.sendStatus(403);
     }
 }
 
@@ -221,7 +226,6 @@ function savePassword(req: express.Request, res: express.Response): void {
     const newPassword: string = req.body.new;
     if (users.has(username)) {
         const u: User = users.get(username);
-        console.log(u);
         if(oldPassword != u.getPasswort) {
             // Anfrage nicht erlaubt - "Das alte Passwort ist nicht korrekt!"
             res.sendStatus(403);
