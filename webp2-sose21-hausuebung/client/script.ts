@@ -173,6 +173,12 @@ function deleteUser(username: String): void {
 }
 
 function login():void{
+    const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
+    userinfo.innerHTML = `Hallo`;
+
+    
+    
+    
     console.log();
     console.log("Login wird geprüft");
 }

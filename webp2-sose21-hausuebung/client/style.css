@@ -1,1 +1,71 @@
-r
+.abstand {
+    margin-bottom: 15% !important;
+    margin-top: 5% !important;
+}
+
+.hintergrund {
+    height: 30vw;
+    margin-top: 15% !important;
+}
+
+.lightred {
+    background-color: darkred;
+    color: #dc3545;
+    padding: 10px;
+}
+
+.darkred {
+    background-color: darkred !important;
+}
+
+.line-darkred {
+    border-color: darkred !important;
+}
+
+.titel {
+    padding: 3vw;
+    margin-bottom: 3vw;
+    border-bottom: thick;
+}
+
+.text-color {
+    color: white !important;
+}
+
+.text-red {
+    color: darkred !important;
+}
+
+.edit-button:hover {
+    background-color: darkred !important;
+    color: white !important;
+}
+
+.delete-button:hover {
+    background-color: darkred !important;
+    color: white !important;
+}
+
+.password-button:hover {
+    background-color: darkred !important;
+    color: white !important;
+}
+
+.mitte {
+    display: flex;
+    justify-content: center;
+}
+
+.right-corner {
+    display: flex;
+    justify-content: right;
+}
+
+.borderline {
+    border-width: thin !important;
+    border-color: black !important;
+}
+
+.line {
+    border-bottom: 5px solid black;
+}
