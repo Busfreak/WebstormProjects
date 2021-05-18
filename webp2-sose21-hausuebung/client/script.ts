@@ -250,7 +250,6 @@ function savePet():void {
 }
 
 function deletePet(tiername: string): void {
-    console.log(tiername);
     // AJAX Request: Benutzer mit username löschen
     axios.delete("/pet/" + tiername).then(()=>{
         console.log("Löschen erfolgreich!");

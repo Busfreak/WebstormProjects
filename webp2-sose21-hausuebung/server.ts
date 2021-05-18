@@ -1,4 +1,10 @@
 import * as express from "express";
+import * as session from "express-session";
+declare module "express-session" {
+    interface Session {
+        uname: string;
+    }
+}
 const PORT: number = 8080;
 const router: express.Express = express();
 
@@ -49,6 +55,16 @@ router.listen (PORT, () => {
 
 router.use(express.urlencoded({extended: false}));
 router.use(express.json());
+router.use(session({
+    cookie: {
+        expires: new Date(Date.now() + (1000 * 60 * 60)),
+        sameSite: true,
+        secure: false,
+    },
+    secret: Math.random().toString(),
+    resave: true,
+    saveUninitialized: true
+}));
 
 router.get("/", (reg: express.Request, res: express.Response) => {
     res.status(200);
@@ -56,6 +72,9 @@ router.get("/", (reg: express.Request, res: express.Response) => {
 //    var path = require('path');
 //    res.sendFile(path.resolve(__dirname + "/../client/index.html"));
 });
+
+router.post("/login", login);
+router.post("/logout", logout);
 
 router.use("/res", express.static(__dirname + "/client"));
 router.use("/lib", express.static(__dirname + "/node_modules"));
@@ -65,7 +84,7 @@ router.post("/user", postUser);
 router.get("/user/:username", getUser);
 router.delete("/user/:username", deleteUser);
 router.put("/user/:username", updateUser);
-router.get("/users", getUsers);
+router.get("/users", checkLogin, getUsers);
 router.post("/savepassword", savePassword);
 
 router.post("/pet", postPet);
@@ -73,6 +92,43 @@ router.get("/pets", getPets);
 router.delete("/pet/:tiername", deletePet);
 router.put("/pet/:tiername", updatePet);
 
+// Autorisiert die Session, falls Benutzer registriert ist
+function login(req: express.Request, res: express.Response): void {
+    const username: string = req.body.username;
+    const passwort: string = req.body.passwort;
+    if (users.has(username)) {
+        const u: User = users.get(username);
+        if (u.getPasswort === passwort) {
+            req.session.uname = username
+            res.sendStatus(200);
+//            res.redirect("/");
+        } else {
+            res.sendStatus(403);
+        }
+    } else {
+        res.sendStatus(404);
+    }
+}
+
+// Beendet die Session
+function logout(req: express.Request, res: express.Response): void {
+    req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.sendStatus(200);
+    });
+}
+
+// Eine sog. Middleware-Route prüft, ob der Client angemeldet ist und ruft ggf. die nächste Funktion auf
+function checkLogin(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    console.log("Test: " + req.session.uname);
+    if (req.session.uname !== undefined) {
+        // Ruft die nächste Funktion der Funktioskette
+        next();
+    } else {
+        // Client nicht angemeldet
+        res.sendStatus(401);
+    }
+}
 
 // Funktionen für REST
 // neuen User anlegen, wenn er noch nicht existiert
@@ -141,7 +197,7 @@ function getUsers(req: express.Request, res: express.Response): void {
         res.status(200);
         res.json(jsonObject);
     } else {
-        res.sendStatus(404);
+        res.sendStatus(204);
     }
 }
 
@@ -187,7 +243,7 @@ function getPets(req: express.Request, res: express.Response): void {
         res.status(200);
         res.json(jsonObject);
     } else {
-        res.sendStatus(404);
+        res.sendStatus(204);
     }
 }
 
