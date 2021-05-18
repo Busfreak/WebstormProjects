@@ -97,8 +97,10 @@ function login(req: express.Request, res: express.Response): void {
     const username: string = req.body.username;
     const passwort: string = req.body.passwort;
     if (users.has(username)) {
+        console.log("User bekannt");
         const u: User = users.get(username);
         if (u.getPasswort === passwort) {
+            console.log("Passwort: " + passwort);
             req.session.uname = username
             res.sendStatus(200);
 //            res.redirect("/");
