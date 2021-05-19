@@ -213,19 +213,22 @@ function saveUser(username: string, vorname: string, nachname: string): void {
 
 // Benutzer löschen - delete
 function deleteUser(username: String): void {
-    // AJAX Request: Benutzer mit username löschen
-    axios.delete("/user/" + username).then(()=>{
-        setmeldung("Löschen erfolgreich!");
-    })
-        .catch((err : AxiosError) => {
-            if(err.response.status == 404) {
-                setmeldung("Der Benutzername ist nicht bekannt");
-            } else if (err.response.status == 403) {
-                setmeldung("Man kann sich leider nicht selber löschen!");
-            } else {
-                console.log(err.response.status);
-            }
-        });
+    var check = confirm('Wollen Sie den Benutzer ' + username + ' wirklich löschen?');
+    if (check == true) {
+        // AJAX Request: Benutzer mit username löschen
+        axios.delete("/user/" + username).then(()=>{
+            setmeldung("Löschen erfolgreich!");
+        })
+            .catch((err : AxiosError) => {
+                if(err.response.status == 404) {
+                    setmeldung("Der Benutzername ist nicht bekannt");
+                } else if (err.response.status == 403) {
+                    setmeldung("Man kann sich leider nicht selber löschen!");
+                } else {
+                    console.log(err.response.status);
+                }
+            });
+    }
 }
 
 // Login
@@ -342,18 +345,21 @@ function savePet():void {
 }
 
 function deletePet(tiername: string): void {
-    // AJAX Request: Benutzer mit username löschen
-    axios.delete("/pet/" + tiername).then(()=>{
-        setmeldung("Löschen erfolgreich!");
-        renderPetlist();
-    })
-        .catch((err : AxiosError) => {
-            if(err.response.status == 404) {
-                setmeldung("Das Tier ist nicht bekannt");
-            } else {
-                console.log(err.response.status);
-            }
-        });
+    var check = confirm('Wollen Sie das Tier ' + tiername + ' wirklich löschen?');
+    if (check == true) {
+        // AJAX Request: Benutzer mit username löschen
+        axios.delete("/pet/" + tiername).then(()=>{
+            setmeldung("Löschen erfolgreich!");
+            renderPetlist();
+        })
+            .catch((err : AxiosError) => {
+                if(err.response.status == 404) {
+                    setmeldung("Das Tier ist nicht bekannt");
+                } else {
+                    console.log(err.response.status);
+                }
+            });
+    }
 }
 
 // Render-Funktionen
