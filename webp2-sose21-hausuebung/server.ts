@@ -73,7 +73,7 @@ function login(req: express.Request, res: express.Response): void {
             }
         })
         .catch((err)=>{
-            console.log("LOGIN", err);
+            console.log("login", err);
             res.sendStatus(404);
         })
 }
@@ -99,7 +99,7 @@ function loggedIn(req: express.Request, res: express.Response): void {
                 }
             })
             .catch((err)=>{
-                console.log("LOGIN", err);
+                console.log("loggedIn", err);
                 res.sendStatus(500);
             })
     } else {
@@ -138,7 +138,7 @@ function postUser(req: express.Request, res: express.Response): void {
                         }
                     })
                     .catch((err)=>{
-                        console.log("postUser", err);
+                        console.log("postUser INSERT", err);
                         res.sendStatus(500);
                     })
             } else {
@@ -146,7 +146,7 @@ function postUser(req: express.Request, res: express.Response): void {
             }
         })
         .catch((err)=>{
-            console.log("LOGIN", err);
+            console.log("postUser SELECT", err);
             res.sendStatus(500);
         })
 }
@@ -210,7 +210,7 @@ function updateUser(req: express.Request, res: express.Response): void {
             }
         })
         .catch((err)=>{
-            console.log("LOGIN", err);
+            console.log("updateUser", err);
             res.sendStatus(500);
         })
 }
@@ -305,7 +305,7 @@ function deletePet(req: express.Request, res: express.Response): void {
                         }
                     })
                     .catch((err)=>{
-                        console.log("postUser", err);
+                        console.log("deletePet DELETE", err);
                         res.sendStatus(500);
                     })
             } else {
@@ -313,7 +313,7 @@ function deletePet(req: express.Request, res: express.Response): void {
             }
         })
         .catch((err)=>{
-            console.log("deletePet", err);
+            console.log("deletePet SELECT", err);
             res.sendStatus(500);
         })
 }
