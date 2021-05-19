@@ -180,14 +180,14 @@ function saveRegistration():void {
             nachname: nachname,
             passwort: passwort
         }).then(()=>{
-                console.log("Speichern erfolgreich!");
+                setmeldung("Speichern erfolgreich!");
                 form.reset();
                 renderLoginForm();
             })
             .catch((err : AxiosError) => {
                 if(err.response.status == 403) {
                     //die Prüfung ergab, dass der Username bereits registriert wurde
-                    console.log("Benutzername ist breits vergeben");
+                    setmeldung("Benutzername ist breits vergeben");
                     alert("Der Username ist leider schon vergeben. Überleg dir bitte einen anderen!");
                     (document.getElementById("username")as HTMLInputElement).value = "Username ist bereits vergeben";
                 } else {
@@ -201,11 +201,11 @@ function saveRegistration():void {
 function saveUser(username: string, vorname: string, nachname: string): void {
     // AJAX Request: Benutzer mit username und weiteren Daten speichern
     axios.put("/user/" + username, {username: username, vorname: vorname, nachname: nachname}).then(()=>{
-        console.log("Speichern erfolgreich!");
+        setmeldung("Speichern erfolgreich!");
     })
         .catch((err : AxiosError) => {
             if(err.response.status == 404) {
-                console.log("Der Benutzername ist nicht bekannt");
+                setmeldung("Der Benutzername ist nicht bekannt");
             } else {
                 console.log(err.response.status);
             }
@@ -216,13 +216,13 @@ function saveUser(username: string, vorname: string, nachname: string): void {
 function deleteUser(username: String): void {
     // AJAX Request: Benutzer mit username löschen
     axios.delete("/user/" + username).then(()=>{
-        console.log("Löschen erfolgreich!");
+        setmeldung("Löschen erfolgreich!");
     })
         .catch((err : AxiosError) => {
             if(err.response.status == 404) {
-                console.log("Der Benutzername ist nicht bekannt");
+                setmeldung("Der Benutzername ist nicht bekannt");
             } else if (err.response.status == 403) {
-                console.log("Man kann sich leider nicht selber löschen!");
+                setmeldung("Man kann sich leider nicht selber löschen!");
             } else {
                 console.log(err.response.status);
             }
@@ -251,11 +251,9 @@ function login():void{
         })
         .catch((err : AxiosError) => {
             if(err.response.status == 404) {
-                console.log("Benutzername oder Passwort inkorrekt");
-                alert("Benutzername oder Passwort inkorrekt");
+                setmeldung("Benutzername oder Passwort inkorrekt")
             } else {
-                console.log("Fehler in der Anmeldung");
-                alert("Fehler in der Anmeldung");
+                setmeldung("Fehler in der Anmeldung");
             }
         });
 }
@@ -264,7 +262,7 @@ function login():void{
 function logout(): void {
     axios.post("/logout")
         .then(() => {
-            console.log("Logout erfolgreich");
+            setmeldung("Logout erfolgreich");
             renderUserInfo();
             (document.getElementById("pettable") as HTMLDivElement).innerHTML = "";
             (document.getElementById("petform") as HTMLDivElement).innerHTML = "";
@@ -292,13 +290,13 @@ function checkPassword(username: string): void {
                 old: oldpassword,
                 new: password1
             }).then(() => {
-                console.log("Passwort erfolgreich geändert!");
+                setmeldung("Passwort erfolgreich geändert!");
             })
                 .catch((err: AxiosError) => {
                     if (err.response.status == 403) {
-                        console.log("Das Passwort ist falsch!");
+                        setmeldung("Das Passwort ist falsch!");
                     } else {
-                        console.log("das war nix: " + err.response.status);
+                        setmeldung("das war nix: " + err.response.status);
                     }
                 });
         }
@@ -328,15 +326,14 @@ function savePet():void {
                 tiername: tiername,
                 tierart: tierart
             }).then(()=>{
-                console.log("Speichern erfolgreich!");
+                setmeldung("Speichern erfolgreich!");
                 form.reset();
             })
                 .catch((err : AxiosError) => {
                     if(err.response.status == 403) {
                         //die Prüfung ergab, dass der Tiername bereits registriert wurde
-                        console.log("Tiername ist breits vergeben");
-                        alert("Der Tiername ist leider schon vergeben. Überleg dir bitte einen anderen!");
-                        (document.getElementById("tiername")as HTMLInputElement).value = "Tiername ist bereits vergeben";
+                        setmeldung("Der Tiername ist leider schon vergeben. Überleg dir bitte einen anderen!");
+                        (document.getElementById("tiername")as HTMLInputElement).value = "";
                     } else {
                         console.log("Es ist ein Fehler aufgetreten: " + err.response.status);
                     }
@@ -348,12 +345,12 @@ function savePet():void {
 function deletePet(tiername: string): void {
     // AJAX Request: Benutzer mit username löschen
     axios.delete("/pet/" + tiername).then(()=>{
-        console.log("Löschen erfolgreich!");
+        setmeldung("Löschen erfolgreich!");
         renderPetlist();
     })
         .catch((err : AxiosError) => {
             if(err.response.status == 404) {
-                console.log("Das Tier ist nicht bekannt");
+                setmeldung("Das Tier ist nicht bekannt");
             } else {
                 console.log(err.response.status);
             }
@@ -573,11 +570,7 @@ function renderPetlist(): void {
                     i++;
                 }
             }).catch((err: AxiosError) => {
-                if(err.response.status == 204) {
-                    console.log("Keine Tiere gefunden.");
-                } else {
-                    console.log("Anfrage Fehlgeschlagen: " + err.response.status)
-                }
+                console.log("Anfrage Fehlgeschlagen: " + err.response.status)
             });
         }
     }).catch((err: AxiosError) => {
@@ -585,3 +578,13 @@ function renderPetlist(): void {
     });
 }
 
+function setmeldung(text: string): void {
+    const meldung: HTMLElement = document.getElementById("meldung");
+    meldung.innerHTML = text;
+    setTimeout(deleteMeldung, 10000);
+}
+
+function deleteMeldung(): void {
+    const meldung: HTMLElement = document.getElementById("meldung");
+    meldung.innerHTML = " ";
+}
