@@ -217,6 +217,7 @@ function deleteUser(username: String): void {
     if (check == true) {
         // AJAX Request: Benutzer mit username löschen
         axios.delete("/user/" + username).then(()=>{
+            setTimeout(logout, 3000);
             setmeldung("Löschen erfolgreich!");
         })
             .catch((err : AxiosError) => {

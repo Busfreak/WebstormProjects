@@ -171,16 +171,25 @@ function getUser(req: express.Request, res: express.Response): void {
 
 // User löschen
 function deleteUser(req: express.Request, res: express.Response): void {
-    query("DELETE FROM user WHERE username = ?;", [req.params.username])
+    query("SELECT NULL FROM user WHERE username = ?;", [req.params.username])
         .then((results)=>{
             if(results.length == 1) {
-                res.sendStatus(200);
+                query("DELETE FROM user WHERE username = ?;", [req.params.username])
+                    .then((results)=>{
+                        if(results.affectedRows == 1) {
+                            res.sendStatus(200);
+                        }
+                    })
+                    .catch((err)=>{
+                        console.log("deleteUser DELETE", err);
+                        res.sendStatus(500);
+                    })
             } else {
-                res.sendStatus(404);
+                res.sendStatus(403);
             }
         })
         .catch((err)=>{
-            console.log("deleteUSer", err);
+            console.log("deleteUser SELECT", err);
             res.sendStatus(500);
         })
 }
