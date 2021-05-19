@@ -169,7 +169,7 @@ function postUser(req: express.Request, res: express.Response): void {
     const vorname: string = req.body.vorname;
     const nachname: string = req.body.nachname;
     const passwort: string = req.body.passwort;
-    query("SELECT NULL FROM user WHERE username = ?;", [req.session.uname])
+    query("SELECT NULL FROM user WHERE username = ?;", [req.body.username])
         .then((results)=>{
             if(results.length == 0) {
                 query("INSERT INTO user (username, vorname, nachname, passwort) VALUES (?, ?, ?, ?);", [req.body.username, req.body.vorname, req.body.nachname, req.body.passwort])
