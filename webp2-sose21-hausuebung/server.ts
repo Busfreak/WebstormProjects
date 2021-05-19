@@ -22,17 +22,6 @@ connection.connect((err) => {
 
 const router: express.Express = express();
 
-class Pet {
-    public readonly tiername: string;
-    public tierart: string;
-
-    constructor(tiername: string, tierart: string) {
-        this.tiername = tiername;
-        this.tierart = tierart;
-    }
-}
-//const pets: Map<string, Pet> = new Map<string, Pet>();
-
 router.listen (PORT, () => {
     console.log("Server ist gestartet unter http://localhost:" + PORT + "/");
 });
@@ -316,19 +305,6 @@ function deletePet(req: express.Request, res: express.Response): void {
             console.log("LOGIN", err);
             res.sendStatus(500);
         })
-}
-
-// Tier aktualisieren
-function updatePet(req: express.Request, res: express.Response): void {
-    const tiername: string = req.body.tiername;
-    const tierart: string = req.body.tiertart;
-    if (pets.has(tiername)) {
-        const p: Pet = pets.get(tiername);
-        p.tierart = tierart;
-        res.sendStatus(200);
-    } else {
-        res.sendStatus(404);
-    }
 }
 
 // Ein eigener Wrapper, um die MySQL-Query als Promise (then/catch Syntax) zu nutzen
