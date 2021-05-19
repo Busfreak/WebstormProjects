@@ -187,9 +187,8 @@ function saveRegistration():void {
             .catch((err : AxiosError) => {
                 if(err.response.status == 403) {
                     //die Prüfung ergab, dass der Username bereits registriert wurde
-                    setmeldung("Benutzername ist breits vergeben");
-                    alert("Der Username ist leider schon vergeben. Überleg dir bitte einen anderen!");
-                    (document.getElementById("username")as HTMLInputElement).value = "Username ist bereits vergeben";
+                    setmeldung("Der Username ist leider schon vergeben. Überleg dir bitte einen anderen!");
+                    (document.getElementById("username")as HTMLInputElement).value = "";
                 } else {
                     console.log("Es ist ein Fehler aufgetreten: " + err.response.status);
                 }
