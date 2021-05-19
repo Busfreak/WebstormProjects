@@ -148,7 +148,7 @@ function loggedIn(req: express.Request, res: express.Response): void {
             })
     } else {
         // Client nicht angemeldet
-        res.sendStatus(401);
+        res.sendStatus(204);
     }
 }
 

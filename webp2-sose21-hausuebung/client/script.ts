@@ -113,16 +113,16 @@ function renderUserInfo(): void {
     //prüfen, ob ein User angemeldet ist, oder nicht
     // AJAX Request: ist ein Benutzer angemeldet, dann empfange die Daten des Benutzer
     axios.get("/loggedin").then((res: AxiosResponse) => {
-        const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
-        userinfo.innerHTML = "angemeldet als: " + res.data["vorname"] + " " + res.data["nachname"] + `
+        if (res.status == 200) {
+            const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
+            userinfo.innerHTML = "angemeldet als: " + res.data["vorname"] + " " + res.data["nachname"] + `
                     <button type="submit" class="logout-button btn btn-outline-danger">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-right-circle-fill" viewBox="0 0 16 16">
                     <path d="M0 8a8 8 0 1 0 16 0A8 8 0 0 0 0 8zm5.904 2.803a.5.5 0 1 1-.707-.707L9.293 6H6.525a.5.5 0 1 1 0-1H10.5a.5.5 0 0 1 .5.5v3.975a.5.5 0 0 1-1 0V6.707l-4.096 4.096z"></path>
                         </svg>
                     Abmelden</button>
                 `;
-    }).catch((err: AxiosError) => {
-        if(err.response.status == 401) {
+        } else {
             const userinfo: HTMLDivElement = document.getElementById("userinfo") as HTMLDivElement;
             userinfo.innerHTML = "nicht angemeldet" + `
                     <button type="submit" class="render-login-button btn btn-outline-danger">
@@ -142,9 +142,9 @@ function renderUserInfo(): void {
                 <p>Du hast noch keinen Account, möchtest aber deine Haustiere präsentieren und die der anderen bewundern?</p>
                 <p>Dann registriere dich jetzt und freu dich auf ein flauschiges Miteinander!</p>
             </div>`;
-        } else {
-            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
         }
+    }).catch((err: AxiosError) => {
+        console.log("Anfrage Fehlgeschlagen: " + err.response.status)
     });
 }
 
@@ -401,61 +401,55 @@ function renderRegistrationForm():void {
 // Userliste erstellen und anzeigen
 function renderUserlist(): void {
     axios.get("/loggedin").then((res: AxiosResponse) => {
-        const username: string = res.data["username"];
-        // Überschriften erstellen und anzeigen
-        let thead: HTMLElement = document.getElementById("user-thead");
-        thead.innerHTML = "";
-        const editthead: HTMLElement = document.createElement("tr");
-        editthead.innerHTML=`
-        <th class="col-3 darkred text-color">Username:</th>
-        <th class="col-3 darkred text-color">Vorname:</th>
-        <th class="col-3 darkred text-color">Nachname:</th>
-        <th class="col-3 darkred text-color">Aktionen:</th>`
-        thead.appendChild(editthead);
-        // Tabelle mit Benutzern erstellen und anzeigen
-        let table: HTMLElement = document.getElementById("user-table");
-        table.innerHTML = "";
+        if (res.status == 200) {
+            const username: string = res.data["username"];
+            // Überschriften erstellen und anzeigen
+            let thead: HTMLElement = document.getElementById("user-thead");
+            thead.innerHTML = "";
+            const editthead: HTMLElement = document.createElement("tr");
+            editthead.innerHTML=`
+                <th class="col-3 darkred text-color">Username:</th>
+                <th class="col-3 darkred text-color">Vorname:</th>
+                <th class="col-3 darkred text-color">Nachname:</th>
+                <th class="col-3 darkred text-color">Aktionen:</th>`;
+            thead.appendChild(editthead);
+            // Tabelle mit Benutzern erstellen und anzeigen
+            let table: HTMLElement = document.getElementById("user-table");
+            table.innerHTML = "";
 
-        // AJAX Request: eigene Userdaten aus Backend abfragen
-        axios.get("/user/" + username).then((res: AxiosResponse) => {
-            const row: HTMLElement = document.createElement("tr");
-            // Zeilennummer setzen
-            row.setAttribute("id", "row1");
-            row.innerHTML = `
-            <td class="col-3">${username}</td>
-            <td class="col-3">${res.data["vorname"]}</td>
-            <td class="col-3">${res.data["nachname"]}</td>
-            <td class="col-3" id="buttonliste">
-               <button type="submit" class="edit-button btn btn-outline-primary btn-sm line-darkred text-red" data-username=${res.data["username"]} data-index="1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                    <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
-                    </svg>
-                Editieren</button>
-                <button type="submit" class="delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-username=${res.data["username"]} data-index="1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                    </svg>
-                Löschen</button>
-                <button type="submit" class="password-button btn btn-outline-primary btn-sm line-darkred text-red" data-username=${res.data["username"]}" data-index="1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key-fill" viewBox="0 0 16 16">
-                    <path d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-                    </svg>
-                Passwort ändern</button>
-            </td>`;
-            table.appendChild(row);
-        }).catch((err: AxiosError) => {
-            if(err.response.status == 204) {
-                console.log("Keine Benutzer gefunden.");
-            } else {
+            // AJAX Request: eigene Userdaten aus Backend abfragen
+            axios.get("/user/" + username).then((res: AxiosResponse) => {
+                const row: HTMLElement = document.createElement("tr");
+                // Zeilennummer setzen
+                row.setAttribute("id", "row1");
+                row.innerHTML = `
+                <td class="col-3">${username}</td>
+                <td class="col-3">${res.data["vorname"]}</td>
+                <td class="col-3">${res.data["nachname"]}</td>
+                <td class="col-3" id="buttonliste">
+                   <button type="submit" class="edit-button btn btn-outline-primary btn-sm line-darkred text-red" data-username=${res.data["username"]} data-index="1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                        <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+                        </svg>
+                    Editieren</button>
+                    <button type="submit" class="delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-username=${res.data["username"]} data-index="1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                        </svg>
+                    Löschen</button>
+                    <button type="submit" class="password-button btn btn-outline-primary btn-sm line-darkred text-red" data-username=${res.data["username"]}" data-index="1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key-fill" viewBox="0 0 16 16">
+                        <path d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                        </svg>
+                    Passwort ändern</button>
+                </td>`;
+                table.appendChild(row);
+            }).catch((err: AxiosError) => {
                 console.log("Anfrage Fehlgeschlagen: " + err.response.status)
-            }
-        });
-    }).catch((err: AxiosError) => {
-        if(err.response.status == 401) {
-            // nicht angemeldet
-        } else {
-            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
+            });
         }
+    }).catch((err: AxiosError) => {
+        console.log("Anfrage Fehlgeschlagen: " + err.response.status)
     });
 }
 
@@ -513,60 +507,59 @@ function editPassword(username: string, index: number): void {
 // Eingabefelder für das Anlegen eines neuen Tiers erstellen
 function renderPetForm(){
     axios.get("/loggedin").then((res: AxiosResponse) => {
-        // angemeldet
-        const petform: HTMLDivElement = document.getElementById("petform") as HTMLDivElement;
-        petform.innerHTML = `
-        <H2>deine Haustiere</H2>
-        <form id="petinputform">
-            <label for="tiername"><input type="text" id="tiername" Placeholder="Tiername"></label>
-            <label for="tierart"><input type="text" id="tierart" placeholder="Tierart"></label>
-            <button type="submit" class="pet-registration-button btn btn-outline-primary btn-sm line-darkred text-red">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
-                </svg>
-            Speichern</button>
-        </form>
-    `;
-    }).catch((err: AxiosError) => {
-        if(err.response.status == 401) {
-            // nicht angemeldet
-        } else {
-            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
+        if (res.status == 200) {
+            // angemeldet
+            const petform: HTMLDivElement = document.getElementById("petform") as HTMLDivElement;
+            petform.innerHTML = `
+                <H2>deine Haustiere</H2>
+                <form id="petinputform">
+                    <label for="tiername"><input type="text" id="tiername" Placeholder="Tiername"></label>
+                    <label for="tierart"><input type="text" id="tierart" placeholder="Tierart"></label>
+                    <button type="submit" class="pet-registration-button btn btn-outline-primary btn-sm line-darkred text-red">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                        <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+                        </svg>
+                    Speichern</button>
+                </form>
+            `;
         }
+    }).catch((err: AxiosError) => {
+        console.log("Anfrage Fehlgeschlagen: " + err.response.status)
     });
 }
 
 // Tierliste erstellen und anzeigen
 function renderPetlist(): void {
     axios.get("/loggedin").then((res: AxiosResponse) => {
-        // angemeldet
-        // AJAX Request: alle Tiere aus Backend abfragen
-        axios.get("/pets").then((res: AxiosResponse) => {
-            //Tabellenhead anzeigen
-            const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
-            pettable.innerHTML = `
-            <table>
-                <thead>
-                    <th class="col-3 darkred text-color">Name:</th>
-                    <th class="col-3 darkred text-color">Tierart:</th>
-                    <th class="col-3 darkred text-color">bearbeiten</th>
-                </thead>
-                <tbody id="pet-table"></tbody>
-            </table>
-        `;
-            //Tabelle erstellen
-            let table: HTMLElement = document.getElementById("pet-table");
-            table.innerHTML = "";
+        if (res.status == 200) {
+            // angemeldet
+            // AJAX Request: alle Tiere aus Backend abfragen
+            axios.get("/pets").then((res: AxiosResponse) => {
+                //Tabellenhead anzeigen
+                const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
+                pettable.innerHTML = `
+                    <table>
+                        <thead>
+                            <th class="col-3 darkred text-color">Name:</th>
+                            <th class="col-3 darkred text-color">Tierart:</th>
+                            <th class="col-3 darkred text-color">bearbeiten</th>
+                        </thead>
+                        <tbody id="pet-table"></tbody>
+                    </table>
+                `;
+                //Tabelle erstellen
+                let table: HTMLElement = document.getElementById("pet-table");
+                table.innerHTML = "";
 
-            // Zähler für data-index, damit die angeklickte Zeile später gefunden werden kann
-            let i: number = 0;
+                // Zähler für data-index, damit die angeklickte Zeile später gefunden werden kann
+                let i: number = 0;
 
-            // die einzelnen Datensätze aus der Response durchgehen und in die Tabelle einfügen
-            for (let value in res.data) {
-                const row: HTMLElement = document.createElement("tr");
-                // Zeilennummer setzen
-                row.setAttribute("id", "row" + i);
-                row.innerHTML = `
+                // die einzelnen Datensätze aus der Response durchgehen und in die Tabelle einfügen
+                for (let value in res.data) {
+                    const row: HTMLElement = document.createElement("tr");
+                    // Zeilennummer setzen
+                    row.setAttribute("id", "row" + i);
+                    row.innerHTML = `
                 <td class="col-3">${res.data[value]["tiername"]}</td>
                 <td class="col-3">${res.data[value]["tierart"]}</td>
                 <td class="col-3" id="buttonliste">
@@ -576,22 +569,19 @@ function renderPetlist(): void {
                         </svg>
                     Löschen</button>
                 </td>`;
-                table.appendChild(row);
-                i++;
-            }
-        }).catch((err: AxiosError) => {
-            if(err.response.status == 204) {
-                console.log("Keine Tiere gefunden.");
-            } else {
-                console.log("Anfrage Fehlgeschlagen: " + err.response.status)
-            }
-        });
-    }).catch((err: AxiosError) => {
-        if(err.response.status == 401) {
-            // nicht angemeldet
-        } else {
-            console.log("Anfrage Fehlgeschlagen: " + err.response.status)
+                    table.appendChild(row);
+                    i++;
+                }
+            }).catch((err: AxiosError) => {
+                if(err.response.status == 204) {
+                    console.log("Keine Tiere gefunden.");
+                } else {
+                    console.log("Anfrage Fehlgeschlagen: " + err.response.status)
+                }
+            });
         }
+    }).catch((err: AxiosError) => {
+        console.log("Anfrage Fehlgeschlagen: " + err.response.status)
     });
 }
 
