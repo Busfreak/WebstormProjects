@@ -537,9 +537,10 @@ function renderPetlist(): void {
             // angemeldet
             // AJAX Request: alle Tiere aus Backend abfragen
             axios.get("/pets").then((res: AxiosResponse) => {
-                //Tabellenhead anzeigen
                 const pettable: HTMLDivElement = document.getElementById("pettable") as HTMLDivElement;
-                pettable.innerHTML = `
+                if (res.status == 200) {
+                    //Tabellenhead anzeigen
+                    pettable.innerHTML = `
                     <table>
                         <thead>
                             <th class="col-3 darkred text-color">Name:</th>
@@ -549,30 +550,33 @@ function renderPetlist(): void {
                         <tbody id="pet-table"></tbody>
                     </table>
                 `;
-                //Tabelle erstellen
-                let table: HTMLElement = document.getElementById("pet-table");
-                table.innerHTML = "";
+                    //Tabelle erstellen
+                    let table: HTMLElement = document.getElementById("pet-table");
+                    table.innerHTML = "";
 
-                // Zähler für data-index, damit die angeklickte Zeile später gefunden werden kann
-                let i: number = 0;
+                    // Zähler für data-index, damit die angeklickte Zeile später gefunden werden kann
+                    let i: number = 0;
 
-                // die einzelnen Datensätze aus der Response durchgehen und in die Tabelle einfügen
-                for (let value in res.data) {
-                    const row: HTMLElement = document.createElement("tr");
-                    // Zeilennummer setzen
-                    row.setAttribute("id", "row" + i);
-                    row.innerHTML = `
-                <td class="col-3">${res.data[value]["tiername"]}</td>
-                <td class="col-3">${res.data[value]["tierart"]}</td>
-                <td class="col-3" id="buttonliste">
-                    <button type="submit" class="pet-delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-tiername=${res.data[value]["tiername"]} data-index="${i}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                        </svg>
-                    Löschen</button>
-                </td>`;
-                    table.appendChild(row);
-                    i++;
+                    // die einzelnen Datensätze aus der Response durchgehen und in die Tabelle einfügen
+                    for (let value in res.data) {
+                        const row: HTMLElement = document.createElement("tr");
+                        // Zeilennummer setzen
+                        row.setAttribute("id", "row" + i);
+                        row.innerHTML = `
+                            <td class="col-3">${res.data[value]["tiername"]}</td>
+                            <td class="col-3">${res.data[value]["tierart"]}</td>
+                            <td class="col-3" id="buttonliste">
+                                <button type="submit" class="pet-delete-button btn btn-outline-primary btn-sm line-darkred text-red" data-tiername=${res.data[value]["tiername"]} data-index="${i}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                    </svg>
+                                Löschen</button>
+                            </td>`;
+                        table.appendChild(row);
+                        i++;
+                    }
+                } else {
+                    pettable.innerHTML = "";
                 }
             }).catch((err: AxiosError) => {
                 console.log("Anfrage Fehlgeschlagen: " + err.response.status)

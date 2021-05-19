@@ -60,7 +60,6 @@ router.get("/loggedin", loggedIn);
 router.post("/pet", checkLogin, postPet);
 router.get("/pets", checkLogin, getPets);
 router.delete("/pet/:tiername", checkLogin, deletePet);
-router.put("/pet/:tiername", checkLogin, updatePet);
 
 // Autorisiert die Session, falls Benutzer registriert ist
 function login(req: express.Request, res: express.Response): void {
@@ -266,12 +265,10 @@ function getPets(req: express.Request, res: express.Response): void {
     query("SELECT tiername, tierart FROM pets WHERE username = ?;", [req.session.uname])
         .then((results)=>{
             if(results.length > 0) {
-                let jsonObject = {};
-
                 res.status(200);
                 res.json(results);
             } else {
-                res.sendStatus(404);
+                res.sendStatus(204);
             }
         })
         .catch((err)=>{
