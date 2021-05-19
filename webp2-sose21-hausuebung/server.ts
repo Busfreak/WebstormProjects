@@ -177,11 +177,7 @@ function deleteUser(req: express.Request, res: express.Response): void {
                     .then((results)=>{
                         if(results.affectedRows == 1) {
                             query("DELETE FROM pets WHERE username = ?;", [req.session.uname])
-                                .then((results)=>{
-                                    if(results.affectedRows > 0) {
-                                        res.sendStatus(204);
-                                    }
-                                })
+                                .then((results)=>{})
                                 .catch((err)=>{
                                     console.log("deleteUser DELETE Pets", err);
                                     res.sendStatus(500);
