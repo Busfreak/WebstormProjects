@@ -22,35 +22,6 @@ connection.connect((err) => {
 
 const router: express.Express = express();
 
-class User {
-    public readonly username: string;
-    public vorname: string;
-    public nachname: string;
-    private passwort: string;
-
-    constructor(username: string, vorname: string, nachname: string, passwort: string) {
-        this.username = username;
-        this.vorname = vorname;
-        this.nachname = nachname;
-        this.passwort = passwort;
-    }
-
-    get userInfo() {
-        let jsonObject = {};
-        jsonObject["username"] = this.username;
-        jsonObject["vorname"] = this.vorname;
-        jsonObject["nachname"] = this.nachname;
-        return jsonObject;
-    }
-
-    get getPasswort() {
-        return this.passwort;
-    }
-
-    set setPasswort(newPassword) {
-        this.passwort = newPassword;
-    }
-}
 class Pet {
     public readonly tiername: string;
     public tierart: string;
@@ -60,8 +31,7 @@ class Pet {
         this.tierart = tierart;
     }
 }
-//const users: Map<string, User> = new Map<string, User>();
-const pets: Map<string, Pet> = new Map<string, Pet>();
+//const pets: Map<string, Pet> = new Map<string, Pet>();
 
 router.listen (PORT, () => {
     console.log("Server ist gestartet unter http://localhost:" + PORT + "/");
@@ -184,8 +154,6 @@ function postUser(req: express.Request, res: express.Response): void {
                         console.log("postUser", err);
                         res.sendStatus(500);
                     })
-//                res.status(201);
-//                res.json({"username": res.json(results[0]), "vorname": res.json(results[1]), "nachname": res.json(results[2])});
             } else {
                 res.sendStatus(403);
             }
@@ -279,39 +247,75 @@ function savePassword(req: express.Request, res: express.Response): void {
 
 // neues Tier anlegen
 function postPet(req: express.Request, res: express.Response): void {
-    const tiername: string = req.body.tiername;
-    const tierart: string = req.body.tierart;
-    if (!pets.has(tiername)) {
-        pets.set(tiername, new Pet(tiername, tierart));
-        res.sendStatus(201);
-    } else {
-        res.sendStatus(403);
-    }
+    query("SELECT NULL FROM pets WHERE username = ? AND tiername = ?;", [req.session.uname, req.body.tiername])
+        .then((results)=>{
+            if(results.length == 0) {
+                query("INSERT INTO pets (username, tiername, tierart) VALUES (?, ?, ?);", [req.session.uname, req.body.tiername, req.body.tierart])
+                    .then((results)=>{
+                        if(results.affectedRows == 1) {
+                            res.sendStatus(201);
+                        } else {
+                            res.sendStatus(400);
+                        }
+                    })
+                    .catch((err)=>{
+                        console.log("postPet INSERT", err);
+                        res.sendStatus(500);
+                    })
+            } else {
+                res.sendStatus(403);
+            }
+        })
+        .catch((err)=>{
+            console.log("postPet SELECT", err);
+            res.sendStatus(500);
+        })
 }
 
 // Tiere auslesen und zurück senden
 function getPets(req: express.Request, res: express.Response): void {
-    if (pets.size > 0) {
-        let jsonObject = {};
-        pets.forEach((value, key) => {
-            jsonObject[key] = value;
-        });
-        res.status(200);
-        res.json(jsonObject);
-    } else {
-        res.sendStatus(204);
-    }
+    query("SELECT tiername, tierart FROM pets WHERE username = ?;", [req.session.uname])
+        .then((results)=>{
+            if(results.length > 0) {
+                let jsonObject = {};
+
+                res.status(200);
+                res.json(results);
+            } else {
+                res.sendStatus(404);
+            }
+        })
+        .catch((err)=>{
+            console.log("getPets", err);
+            res.sendStatus(500);
+        })
 }
 
 // Tier löschen
 function deletePet(req: express.Request, res: express.Response): void {
-    const tiername: string = req.params.tiername;
-    if (pets.has(tiername)) {
-        pets.delete(tiername);
-        res.sendStatus(200);
-    } else {
-        res.sendStatus(404);
-    }
+    query("SELECT NULL FROM pets WHERE tiername = ?;", [req.params.tiername])
+        .then((results)=>{
+            if(results.length == 1) {
+                query("DELETE FROM pets WHERE username = ? AND tiername = ?;", [req.session.uname, req.params.tiername])
+                    .then((results)=>{
+                        if(results.affectedRows == 1) {
+                            res.sendStatus(200);
+                        } else {
+                            res.sendStatus(404);
+                        }
+                    })
+                    .catch((err)=>{
+                        console.log("postUser", err);
+                        res.sendStatus(500);
+                    })
+            } else {
+                res.sendStatus(403);
+            }
+        })
+        .catch((err)=>{
+            console.log("LOGIN", err);
+            res.sendStatus(500);
+        })
 }
 
 // Tier aktualisieren

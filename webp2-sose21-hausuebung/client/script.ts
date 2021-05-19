@@ -166,7 +166,7 @@ function saveRegistration():void {
     // prüfen, ob der Username Leerzeichen enthält
     const test = username.split(" ");
     if (test.length > 1) {
-        alert("Der Username darf keine Leerzeichen enthalten!");
+        setmeldung("Der Username darf keine Leerzeichen enthalten!");
         (document.getElementById("username") as HTMLInputElement).value = "";
     }
 
@@ -280,11 +280,11 @@ function checkPassword(username: string): void {
     const password2: string = (document.getElementById("password2")as HTMLInputElement).value.trim();
 
     if(password1.trim().length==0 || password2.trim().length==0) {
-        alert("Passwort darf nicht leer sein oder nur aus Leerezichen bestehen!");
+        setmeldung("Passwort darf nicht leer sein oder nur aus Leerezichen bestehen!");
     } else {
         if (password1 != password2) {
             (document.getElementById("password2") as HTMLInputElement).setCustomValidity("Passwörter müssen übereinstimmen!");
-            alert("Passwörter müssen übereinstimmen!");
+            setmeldung("Passwörter müssen übereinstimmen!");
         } else {
             // AJAX Request: neues Passwort speichern
             axios.post("/savepassword/", {
@@ -315,12 +315,12 @@ function savePet():void {
 
     // prüfen, ob der Tiername leer ist
     if (tiername.length == 0) {
-        alert("Der Tiername darf nicht leer sein!");
+        setmeldung("Der Tiername darf nicht leer sein!");
     } else {
         // prüfen, ob der Tiername Leerzeichen enthält
         const test = tiername.split(" ");
         if (test.length > 1) {
-            alert("Der Tiername darf keine Leerzeichen enthalten!");
+            setmeldung("Der Tiername darf keine Leerzeichen enthalten!");
             (document.getElementById("tiername") as HTMLInputElement).value = "";
         } else {
             // AJAX Request: neues Tier speichern
