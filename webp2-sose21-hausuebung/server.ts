@@ -83,8 +83,6 @@ router.use(session({
 router.get("/", (reg: express.Request, res: express.Response) => {
     res.status(200);
     res.sendFile(__dirname + "/client/index.html");
-//    var path = require('path');
-//    res.sendFile(path.resolve(__dirname + "/../client/index.html"));
 });
 
 router.post("/login", login);
@@ -175,9 +173,9 @@ function postUser(req: express.Request, res: express.Response): void {
     query("SELECT NULL FROM user WHERE username = ?;", [req.session.uname])
         .then((results)=>{
             if(results.length == 0) {
-                query("INSERT INTO user (username, vorname, nachname, passwort) VALUES ('?', '?', '?', '?');", [req.body.username, req.body.vorname, req.body.nachname, req.body.passwort])
+                query("INSERT INTO user (username, vorname, nachname, passwort) VALUES (?, ?, ?, ?);", [req.body.username, req.body.vorname, req.body.nachname, req.body.passwort])
                     .then((results)=>{
-                        if(results.length == 1) {
+                        if(results.affectedRows == 1) {
                             res.sendStatus(200);
                         } else {
                             res.sendStatus(404);
