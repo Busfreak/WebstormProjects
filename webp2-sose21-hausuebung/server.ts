@@ -72,8 +72,7 @@ router.use(express.json());
 router.use(session({
     cookie: {
         expires: new Date(Date.now() + (1000 * 60 * 60)),
-        sameSite: true,
-        secure: false,
+        sameSite: 'strict'
     },
     secret: Math.random().toString(),
     resave: true,
