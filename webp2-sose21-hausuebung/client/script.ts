@@ -223,8 +223,6 @@ function deleteUser(username: String): void {
             .catch((err : AxiosError) => {
                 if(err.response.status == 404) {
                     setmeldung("Der Benutzername ist nicht bekannt");
-                } else if (err.response.status == 403) {
-                    setmeldung("Man kann sich leider nicht selber löschen!");
                 } else {
                     console.log(err.response.status);
                 }

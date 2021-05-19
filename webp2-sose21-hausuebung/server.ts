@@ -82,7 +82,6 @@ function login(req: express.Request, res: express.Response): void {
 function logout(req: express.Request, res: express.Response): void {
     req.session.destroy(() => {
         res.clearCookie("connect.sid");
-//        res.redirect("/");
         res.sendStatus(200);
     });
 }
@@ -177,11 +176,21 @@ function deleteUser(req: express.Request, res: express.Response): void {
                 query("DELETE FROM user WHERE username = ?;", [req.params.username])
                     .then((results)=>{
                         if(results.affectedRows == 1) {
-                            res.sendStatus(200);
+                            query("DELETE FROM pets WHERE username = ?;", [req.session.uname])
+                                .then((results)=>{
+                                    if(results.affectedRows > 0) {
+                                        res.sendStatus(204);
+                                    }
+                                })
+                                .catch((err)=>{
+                                    console.log("deleteUser DELETE Pets", err);
+                                    res.sendStatus(500);
+                                })
+                             res.sendStatus(200);
                         }
                     })
                     .catch((err)=>{
-                        console.log("deleteUser DELETE", err);
+                        console.log("deleteUser DELETE User", err);
                         res.sendStatus(500);
                     })
             } else {
@@ -308,7 +317,7 @@ function deletePet(req: express.Request, res: express.Response): void {
             }
         })
         .catch((err)=>{
-            console.log("LOGIN", err);
+            console.log("deletePet", err);
             res.sendStatus(500);
         })
 }
